@@ -38,6 +38,8 @@ Your business details are automatically added to every request. You don't need t
 }
 ```
 
+When the same function is invoked from a chatbot conversation (i.e. the bot calls it as a tool while replying to a client), the `business` block additionally includes `clientWaNumber` — the WhatsApp number of the client the bot is currently talking to. This field is **not** present when the function is invoked directly via `POST /v1/org/code/run`.
+
 ---
 
 ## Run Deployed Code
