@@ -14,6 +14,7 @@ Connect third-party tools to the platform and start sending WhatsApp messages fr
 
 :::cards
 [WebEngage](/docs/integrations/web-engage) - Trigger WhatsApp messages from WebEngage journeys and receive delivery status back.
+[CleverTap](/docs/integrations/clever-tap) - Trigger WhatsApp messages from CleverTap campaigns and receive delivery status back.
 :::
 
 ---
@@ -23,8 +24,9 @@ Connect third-party tools to the platform and start sending WhatsApp messages fr
 | Integration                                | Use case                                        |
 | ------------------------------------------ | ----------------------------------------------- |
 | [WebEngage](/docs/integrations/web-engage) | Customer engagement, journey builder, campaigns |
+| [CleverTap](/docs/integrations/clever-tap) | Customer engagement, campaigns, journeys        |
 
-More integrations (CleverTap, MoEngage, Shopify, Link Tracker) are configurable from the **App Store** in the dashboard. Dedicated step-by-step guides for those will land here next.
+More integrations (MoEngage, Shopify, Link Tracker) are configurable from the **App Store** in the dashboard. Dedicated step-by-step guides for those will land here next.
 
 ---
 
