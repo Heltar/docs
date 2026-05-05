@@ -1,16 +1,16 @@
 ---
 title: CleverTap
-description: Send WhatsApp messages from CleverTap campaigns and receive delivery status back
+description: Send WhatsApp messages from CleverTap campaigns and import templates through the platform
 icon: Send
 order: 2
 ---
 
 # CleverTap Integration
 
-Configure CleverTap with the platform as a Private WhatsApp provider so its campaigns, journeys, and transactional flows can deliver WhatsApp messages through your account, and pipe delivery + read receipts back into your webhooks.
+Connect CleverTap to the platform as a **Generic** WhatsApp provider so its campaigns can deliver WhatsApp messages through your account, sync delivery + inbound events back, and import your existing templates automatically.
 
 > [!NOTE]
-> Estimated setup time: ~5 minutes. You'll need CleverTap admin access and an API key from the platform.
+> Estimated setup time: ~5 minutes. You'll need CleverTap account access and a platform API key for the Authorization header.
 
 ---
 
@@ -18,79 +18,114 @@ Configure CleverTap with the platform as a Private WhatsApp provider so its camp
 
 - An active WhatsApp Business number connected to the platform
 - A platform API key (Settings -> Developer Tools -> API Keys)
-- CleverTap admin access to the account/region you want to wire up
+- CleverTap account access for the workspace you want to wire up
 
 ---
 
-## Step-by-step
+## 1. Navigate to WhatsApp Settings
 
-### 1. Open CleverTap Channel Settings
+Open CleverTap and walk through to the WhatsApp provider configuration screen.
 
-Log in to CleverTap and go to **Settings -> Channels -> WhatsApp**.
+### 1. Open the CleverTap Demo workspace
 
-![CleverTap channels panel](/integration-images/clever-tap/channels.webp)
+Login to CleverTap and click **Explore Demo** on the top right corner.
 
-### 2. Add a WhatsApp Provider
+![CleverTap login](/integration-images/clever-tap/step1.webp)
 
-Click **Add Provider** (or **Configure** if you're editing an existing one).
+### 2. Pick the E-commerce demo
 
-![Add WhatsApp provider](/integration-images/clever-tap/add-provider.webp)
+Click on the **E-commerce** option.
 
-### 3. Choose Custom / Private Provider
+![Select E-commerce](/integration-images/clever-tap/step2.webp)
 
-Pick **Custom** (also labelled **Private API**) and enter the configuration name as `Heltar`.
+### 3. Open Settings
 
-![Custom provider selection](/integration-images/clever-tap/custom-provider.webp)
+Select **Settings** from the left menu.
 
-### 4. Enter your WhatsApp number
+![Settings menu](/integration-images/clever-tap/step3.webp)
 
-Enter your WhatsApp business number including the country code. This must match the number connected to the platform.
+### 4. Open the WhatsApp channel
 
-![WhatsApp number field](/integration-images/clever-tap/whatsapp-number.webp)
+Select **Channels** and then choose **WhatsApp**.
 
-### 5. Set the Send API URL
+![Channels -> WhatsApp](/integration-images/clever-tap/step4.webp)
 
-Use the values below in CleverTap's request configuration:
+### 5. Switch to WhatsApp Connect
 
-- **Request Method**: `POST`
-- **Send API URL**: `{{API_URL}}/v1/integrations/clever-tap`
-- **Content-Type**: `application/json`
+Select the **WhatsApp Connect** tab on the top bar.
 
-![Send API URL configuration](/integration-images/clever-tap/send-api-url.webp)
+![WhatsApp Connect tab](/integration-images/clever-tap/step5.webp)
 
-### 6. Add the Authorization header
+### 6. Open Provider Configuration
 
-Add a custom header with key `Authorization` and value `Bearer <YOUR_API_KEY>`.
+Click on the **Provider Configuration** button.
 
-![Authorization header](/integration-images/clever-tap/header.webp)
+![Provider Configuration button](/integration-images/clever-tap/step6.webp)
 
-> [!WARNING]
-> Treat your API key like a password. Don't paste it into shared docs or screenshots — rotate it from Settings -> Developer Tools if you suspect it has leaked.
+### 7. Choose the Generic provider
 
-### 7. Save the configuration
+Choose **Generic** in the provider options.
 
-Click **Save**.
+![Generic provider](/integration-images/clever-tap/step7.webp)
 
-![Save button](/integration-images/clever-tap/save.webp)
+---
 
-### 8. Open the Status Callback panel
+## 2. Configure Webhooks
 
-After saving, CleverTap exposes a **Status Callback URL** (sometimes labelled **Delivery Receipt URL** or **DLR Webhook**) for the provider you just created.
+These callback URLs let CleverTap receive real-time delivery status updates and inbound customer replies from the platform.
 
-![View status callback URL](/integration-images/clever-tap/view-callback.webp)
+In the platform, open **App Store -> Integrations -> CleverTap** (or **Settings -> Webhook Manager**) and enter:
 
-### 9. Copy the CleverTap callback URL
+- **Delivery Report Callback URL** -> the URL CleverTap exposes for delivery receipts. Saved on the platform as the `cleverTapStatus` webhook field.
+- **Inbound Message Callback URL** -> the URL CleverTap exposes for incoming messages. Saved on the platform as the `cleverTapMessages` webhook field.
 
-Copy the callback URL — you'll paste it into the platform on the next step.
-
-![Copy callback URL](/integration-images/clever-tap/copy-callback.webp)
-
-### 10. Paste it back into the platform
-
-In the platform, open **Integrations -> CleverTap** and paste the callback URL into the **Delivery Report Callback URL** field, then click **Submit**. The platform will start forwarding `cleverTapStatus` events to that URL.
+Click **Save Webhooks**.
 
 > [!TIP]
-> You can also configure this from **Settings -> Webhook Manager** by editing the `cleverTapStatus` field directly. If you also want inbound user replies forwarded to CleverTap, set the `cleverTapMessages` field to the same (or a sibling) URL.
+> You can find both URLs inside CleverTap's Generic provider configuration screen, under the delivery and inbound callback fields.
+
+---
+
+## 3. Set Up the Messaging Endpoint
+
+This is the endpoint CleverTap calls when sending WhatsApp messages through the platform.
+
+### 8. Paste the HTTP Endpoint
+
+In CleverTap's Generic provider configuration, set:
+
+- **Method**: `POST`
+- **HTTP Endpoint**: `{{API_URL}}/v1/integrations/clever-tap`
+
+You can copy the exact URL from the in-app integration page (**App Store -> Integrations -> CleverTap**).
+
+### 9. Add the Authorization header
+
+Click on **Headers** and enter:
+
+| Key             | Value                   |
+| --------------- | ----------------------- |
+| `Authorization` | `Bearer <YOUR_API_KEY>` |
+
+![Authorization header](/integration-images/clever-tap/step10.webp)
+
+> [!WARNING]
+> Treat your API key like a password. Don't paste it into shared docs or screenshots. Rotate it from Settings -> Developer Tools if you suspect it has leaked.
+
+---
+
+## 4. Import Templates
+
+CleverTap can pull your approved WhatsApp templates directly from the platform so you don't have to recreate them.
+
+### 10. Configure the Import Templates URL
+
+Scroll to the **Import Templates** section in CleverTap's Provider Configuration and set:
+
+- **Request Type**: `GET`
+- **Import Templates URL**: `{{API_URL}}/v1/integrations/clever-tap/templates`
+
+CleverTap will automatically fetch and sync all your approved WhatsApp templates using this endpoint, with pagination support.
 
 ---
 
@@ -103,12 +138,15 @@ CleverTap campaign ──POST──▶ {{API_URL}}/v1/integrations/clever-tap �
                                                        Status event ──▶ cleverTapStatus webhook ──▶ CleverTap
                                                                           │
                                                        Inbound reply ──▶ cleverTapMessages webhook ──▶ CleverTap
+
+CleverTap template sync ──GET──▶ {{API_URL}}/v1/integrations/clever-tap/templates ──▶ Templates imported
 ```
 
-- CleverTap POSTs to the integration endpoint with the template details and personalisation parameters.
+- CleverTap POSTs to the messaging endpoint with template details and personalisation parameters.
 - The platform sends the WhatsApp message and records the `wamid` against your CleverTap `msgId`.
-- As Meta returns `sent` / `delivered` / `read` / `failed`, the platform forwards each event to the `cleverTapStatus` URL you pasted in Step 10.
-- Inbound user replies (text, media, button taps, location) are forwarded to the `cleverTapMessages` URL if configured.
+- As Meta returns `sent` / `delivered` / `read` / `failed`, the platform forwards each event to the `cleverTapStatus` URL.
+- Inbound user replies (text, media, button taps, location) are forwarded to the `cleverTapMessages` URL.
+- Template sync uses a paginated GET endpoint that returns templates in Meta format.
 
 ---
 
@@ -123,23 +161,17 @@ See [Webhooks](/docs/api/webhooks) for the full payload format.
 
 ---
 
-## Importing existing CleverTap templates
-
-If you already have approved WhatsApp templates in CleverTap, you can pull them into the platform from the **App Store -> Bulk Import Templates -> CleverTap** flow instead of recreating each one by hand. Both **Direct** and **Connect** template formats are supported.
-
----
-
 ## Troubleshooting
 
 > [!WARNING]
-> If CleverTap shows `401 Unauthorized`, double-check the `Authorization: Bearer ...` header — the value must be the API key prefixed with `Bearer ` (with a space).
+> If CleverTap shows `401 Unauthorized`, double-check the `Authorization: Bearer ...` header. The value must be the API key prefixed with `Bearer ` (with a space).
 
 > [!INFO]
 > Status events not reaching CleverTap? Open **Settings -> Webhook Manager**, confirm `cleverTapStatus` is enabled, and inspect the recent delivery logs.
 
 > [!INFO]
-> Messages rejected with `Invalid wabaNumber`? The number CleverTap sends in the payload must match exactly the WhatsApp Business number connected to your platform business — including the country code, with no `+` or spaces.
+> Templates not importing? Make sure the request type is `GET` (not `POST`) and that the URL ends in `/v1/integrations/clever-tap/templates`. The endpoint returns templates in Meta format with pagination.
 
 :::support
-Stuck on a step? Reach out via the **Contact Support** link in the sidebar — share the configuration name and a screenshot of the failing step and we'll unblock you fast.
+Stuck on a step? Reach out via the **Contact Support** link in the sidebar. Share a screenshot of the failing step and we'll unblock you fast.
 :::
