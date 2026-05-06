@@ -18,7 +18,7 @@ Heltar uses **Route Mobile (RML)** as the RCS gateway. You provide the bot/agent
 
 ## Quick start (TL;DR)
 
-Two steps. **No new APIs to learn — your existing send code keeps working.**
+Three steps. **No new APIs to learn — your existing send code keeps working.**
 
 ### Step 1 — Add the Route Mobile API key (once per business)
 
@@ -181,6 +181,29 @@ Sending the same payload to a regular phone (no `@rcs`) routes through WhatsApp 
 ```
 
 Image, video, and PDF are all supported.
+
+### Location
+
+Same `messageType: 'location'` shape you already use for WhatsApp. Route Mobile has no standalone outbound location payload, so Heltar emits a text message describing the place plus a single tappable map chip — the customer taps the chip to open the spot in their map app.
+
+```json
+{
+  "messages": [
+    {
+      "clientWaNumber": "919999999999@rcs",
+      "messageType": "location",
+      "location": {
+        "latitude": 25.688562926103575,
+        "longitude": 85.20774517016658,
+        "name": "Heltar HQ",
+        "address": "Patna, Bihar"
+      }
+    }
+  ]
+}
+```
+
+`name` and `address` are optional. When both are absent, the message body falls back to the raw `latitude, longitude` string and the chip label reads `View on map`.
 
 ---
 
