@@ -23,7 +23,7 @@ Three steps. **No new APIs to learn — your existing send code keeps working.**
 ### Step 1 — Add the Route Mobile API key (once per business)
 
 ```bash
-curl -X POST 'https://app.heltar.com/v1/api-keys' \
+curl -X POST 'https://api.heltar.com/v1/api-keys' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: <your-Heltar-JWT>' \
   -d '{
@@ -41,7 +41,7 @@ curl -X POST 'https://app.heltar.com/v1/api-keys' \
 Same `POST /v1/messages/send` endpoint you already use for WhatsApp — just stamp `@rcs` on the recipient:
 
 ```bash
-curl -X POST 'https://app.heltar.com/v1/messages/send' \
+curl -X POST 'https://api.heltar.com/v1/messages/send' \
   -H 'Authorization: <your-Heltar-JWT>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -60,7 +60,7 @@ The platform routes the call to Route Mobile, the message lands on the customer'
 In your Route Mobile dashboard, set the webhook URL to:
 
 ```
-POST https://app.heltar.com/v1/webhooks/rcs
+POST https://api.heltar.com/v1/webhooks/rcs
 ```
 
 This is a **single global URL** — no per-business setup. Inbound replies, delivery receipts, chip clicks, and media uploads all flow through this URL automatically.
@@ -209,7 +209,7 @@ Same `messageType: 'location'` shape you already use for WhatsApp. Route Mobile 
 
 ## What flows in through the webhook
 
-Once your Route Mobile dashboard is pointed at `POST https://app.heltar.com/v1/webhooks/rcs`, the following events are picked up automatically:
+Once your Route Mobile dashboard is pointed at `POST https://api.heltar.com/v1/webhooks/rcs`, the following events are picked up automatically:
 
 | Event                                        | Result in your inbox                                                                 |
 | -------------------------------------------- | ------------------------------------------------------------------------------------ |
