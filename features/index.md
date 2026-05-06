@@ -27,6 +27,7 @@ Complete WhatsApp Business communication platform.
 
 :::cards
 [Settings](/docs/features/settings) - Configure your workspace
+[RCS Messaging](/docs/features/rcs) - Send and receive RCS over Route Mobile + Jio
 :::
 
 ## Quick Overview
@@ -41,6 +42,7 @@ Complete WhatsApp Business communication platform.
 | **AI Agent**       | Visual flow builder, auto-replies, AI integration      |
 | **Code Editor**    | Custom serverless Python functions                     |
 | **Integrations**   | Shopify, CleverTap, WebEngage, OpenAI, etc.            |
+| **RCS Messaging**  | Rich Communication Services over Route Mobile + Jio    |
 
 ## Platform Capabilities
 
