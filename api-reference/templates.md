@@ -185,30 +185,12 @@ description: Retrieve a specific template by its name.
 method: DELETE
 endpoint: /v1/templates/:templateName/:templateId
 title: Delete Template
-description: Delete a message template from your WhatsApp Business Account. Proxies a DELETE to Meta's `message_templates` endpoint and clears Heltar's template cache.
+description: Delete a message template you no longer want to use.
 
 ## Path Parameters
 
-- templateName: string [required] - Template name (e.g. `order_confirmation`)
-- templateId: string [optional] - Meta template ID (`hsm_id`). Pass the numeric ID returned by Create / List Templates to delete a single language variant. Omit it to delete the template by name only (see warning below).
-
-## Behavior
-
-- **With both `templateName` and `templateId`** — deletes the single language variant identified by `hsm_id`. Other language variants of the same template remain available.
-- **With `templateName` only** — Meta deletes every language variant that shares this name. Heltar also sweeps any internal `__hash__` rotation variants Heltar maintains for marketing templates with the same base name. Use this when you want to retire a template entirely.
-- The endpoint is **idempotent on the Meta side** — re-deleting an already-deleted template returns a Meta error which Heltar surfaces as `400 Bad Request`.
-- The route accepts the optional segment with Express 5 syntax: `/:templateName{/:templateId}`. Both `/v1/templates/order_confirmation` and `/v1/templates/order_confirmation/1234567890` are valid.
-
-## Permissions
-
-Requires the `templateManagement` permission on the caller's role. Users without it receive `403 Forbidden`.
-
-## Request
-
-```request
-DELETE /v1/templates/order_confirmation/1234567890
-Authorization: Bearer <api_key>
-```
+- templateName: string [required] - Template name
+- templateId: string [required] - Template ID from Meta
 
 ## Response
 
@@ -221,20 +203,6 @@ Authorization: Bearer <api_key>
   }
 }
 ```
-
-## Errors
-
-| Status | `code`         | When                                                                                                                                                                      |
-| ------ | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 400    | `BadRequest`   | Template not found on Meta, template still in use by an active campaign, or Meta returned any other error. The original Meta payload is included in `data` for debugging. |
-| 401    | `Unauthorized` | Missing or invalid API key                                                                                                                                                |
-| 403    | `Forbidden`    | Caller's role lacks `templateManagement`                                                                                                                                  |
-
-> [!WARNING]
-> Deleting a template that is referenced by a running or scheduled campaign will cause those sends to fail with `template_not_found`. Pause or migrate dependent campaigns before deletion.
-
-> [!TIP]
-> To delete a single language variant safely, always pass `templateId`. List Templates returns `id` per variant — use that value. Calling with just the name nukes every language and every hash-rotation variant under it.
 
 :::
 

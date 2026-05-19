@@ -199,33 +199,19 @@ If rejected:
 
 ### Deleting Templates
 
-Use this to retire templates that are no longer needed, replace a misnamed template, or clean up rejected drafts.
+Use this when you no longer need a template.
 
-**Navigation**: Settings -> **Template Manager** -> select template -> **Delete**
+**How to delete**
 
-**Steps**
-
-1. Open **Template Manager**
-2. Click the template you want to remove. The template detail panel opens on the right.
-3. Click the **Delete** icon in the panel header
+1. Go to **Settings** -> **Template Manager**
+2. Click the template you want to remove
+3. Click the **Delete** icon
 4. Confirm in the **Delete Template** dialog
 
-On success, the template disappears from the list and the right-hand panel clears.
+The template will disappear from your list.
 
 > [!WARNING]
-> **Deletion is permanent.** Meta removes the template from your WhatsApp Business Account. Any campaign, scheduled send, or chatbot flow that references it by name will start failing with `template_not_found`. Pause or migrate dependents before deleting.
-
-> [!NOTE]
-> The Template Manager UI always sends both the template name and Meta template ID, so it only removes the language variant you have selected. Other language variants of the same template remain available — open and delete each one individually if you want to retire the template entirely. (See the [Delete Template API](/docs/api/templates) for the name-only behavior used by scripts and migrations.)
-
-**When a delete fails**
-
-| Symptom                                              | Cause                                                      | Fix                                                                |
-| ---------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
-| "Please add WhatsApp api details first."             | The business is missing a WABA ID                          | Complete **WhatsApp API Setup** first                              |
-| `template_not_found` in the response toast           | Template was already deleted (or never synced from Meta)   | Refresh the list — it's gone                                       |
-| `403` / missing-permission error                     | Your role does not have **Template Management** permission | Ask an admin to grant `templateManagement` in **Team Permissions** |
-| Campaigns immediately start failing after the delete | The template was still wired into a running campaign       | Recreate the template under a new name and update the campaign     |
+> **You cannot undo this.** If any campaign or chatbot is still using this template, it will stop working. Make sure nothing depends on it before you delete.
 
 ### Template Status
 
