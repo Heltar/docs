@@ -83,51 +83,6 @@ description: Create and send a campaign immediately. Messages are queued and sen
 ---
 
 :::api
-method: POST
-endpoint: /v1/campaigns/schedule
-title: Schedule Campaign
-description: Schedule a campaign to be sent at a future date/time. Useful for timezone-optimized sending.
-
-## Body Parameters
-
-- campaignName: string [required] - Campaign name
-- templateName: string [required] - Approved template name
-- languageCode: string [required] - Template language code
-- messages: array [required] - Recipients with variables
-- scheduleTime: number [required] - Unix timestamp (must be in future)
-
-```request
-{
-  "campaignName": "New Year Sale",
-  "templateName": "promo_template",
-  "languageCode": "en",
-  "messages": [
-    {
-      "clientWaNumber": "919876543210",
-      "variables": [{ "type": "text", "text": "John" }]
-    }
-  ],
-  "scheduleTime": 1735689600
-}
-```
-
-## Response
-
-```response
-{
-  "campaign": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "schedule",
-    "scheduleTime": "2025-01-01T00:00:00Z"
-  }
-}
-```
-
-:::
-
----
-
-:::api
 method: GET
 endpoint: /v1/campaigns
 title: List All Campaigns
