@@ -83,7 +83,7 @@ Enable Developer Mode to see all API calls as cURL commands in the browser conso
 **Example console output:**
 
 ```bash
-curl -X GET "{{API_URL}}/v1/clients?page=1" \
+curl -X GET "{{API_URL}}/v1/clients?limit=500" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
   -H "Content-Type: application/json"
 ```

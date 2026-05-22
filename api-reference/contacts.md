@@ -65,33 +65,46 @@ description: Create new contacts or update existing ones in bulk. If a contact w
 :::api
 method: GET
 endpoint: /v1/clients
-title: List All Contacts
-description: Retrieve a paginated list of all contacts. Contacts are sorted by most recent activity.
+title: List Contacts (keyset paginated)
+description: |
+Returns a page of contacts. Chat-having contacts come first
+(ordered by `latestMessageTimestamp DESC`); when the chat pool is
+exhausted, ghost contacts (created via API or bot-assign that haven't
+sent or received a message) fill the remainder of the page. Pagination
+is keyset-based — pass the `nextCursor` from the previous response
+back as `cursor` to fetch the next page. Iteration ends when
+`nextCursor` is `null`.
 
 ## Query Parameters
 
-- limit: number - Maximum contacts to return (default: 50, max: 100)
-- offset: number - Pagination offset (default: 0)
-- search: string - Search by name or phone number
+- `cursor`: string — opaque pagination token from a prior response's `nextCursor`. Omit for the first page; pass back as-is on subsequent calls. Cursors track the chat→ghost phase transition internally.
+- `limit`: number — page size (default 500, max 5000).
+
+> [!NOTE]
+> Full-text contact search is intentionally not supported here. Look up an exact contact via `GET /v1/clients/:clientWaNumber`, or search message content via the messages-search endpoint.
 
 ## Response
 
 ```response
 {
-  "data": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "username": "John Doe",
-      "clientWaNumber": "919876543210",
-      "countryCode": 91,
-      "isOpen": true,
-      "unreadMessages": 3,
-      "latestMessageTimestamp": "2024-01-15T12:30:00Z"
-    }
-  ],
-  "total": 150
+  "data": {
+    "clients": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "username": "John Doe",
+        "clientWaNumber": "919876543210",
+        "countryCode": 91,
+        "isOpen": true,
+        "unreadMessages": 3,
+        "latestMessageTimestamp": "2024-01-15T12:30:00Z"
+      }
+    ],
+    "nextCursor": "eyJ0cyI6MTcwNTMyMTgwMDAwMCwiaWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDAifQ"
+  }
 }
 ```
+
+When the final page is reached, `nextCursor` is `null`. Blocked contacts are excluded from results.
 
 :::
 
