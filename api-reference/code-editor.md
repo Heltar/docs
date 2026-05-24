@@ -11,6 +11,17 @@ Execute custom functions written in the code editor. Send a request with the fun
 
 ---
 
+## Authentication & Scope
+
+Every `/v1/org/code/*` endpoint is authenticated with a Bearer **API key** (see [Authentication](./authentication.md)). The key must hold the **code-editor** scope:
+
+- **read** — fetch code and list/download versions.
+- **write** — save, deploy, and **run** functions (`POST /v1/org/code/run`).
+
+Choose the **code-editor** resource (Read and/or Write) when creating the key under **Settings → API Key / Dev tools**, or use a **Full access** key. A call the key isn't scoped for returns **403 Forbidden**.
+
+---
+
 ## How It Works
 
 Send a request with the name of the function you want to run, along with any input values it needs.
