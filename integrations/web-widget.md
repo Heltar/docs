@@ -167,6 +167,8 @@ What happens under the hood:
 
 Set `visitor.id` **before** calling `initBubble`. If you change it later in the page session, the widget won't switch threads automatically — call `HeltarChat.unmount()` then `HeltarChat.initBubble({...})` again with the new id.
 
+> If your `visitor.id` is predictable (a sequential user id, a phone, an email), enable **identity verification** (see the section below) so another visitor can't load that conversation by guessing the id.
+
 ## Runtime control (`window.HeltarChat`)
 
 After the script loads, drive the widget from your own UI:
@@ -224,6 +226,69 @@ Clearing the visitor's browser data starts a new thread.
 - **Origin allowlist** — every request must come from a domain you've added in settings. All others are rejected.
 - **Visitor identity is browser-local** — each visitor gets a random id stored only in their own browser's first-party storage; it never leaves their device except in requests from THEIR widget.
 - **Disable instantly** — clear all domains in **Settings → Web Chat Widget** to disable the widget for every visitor immediately. No new visitor can connect; existing ones get cut off on their next request.
+
+---
+
+## Identity verification
+
+Optional. By default a `visitor.id` you pass is trusted as-is — fine for opaque ids, but if the id is **predictable** (a sequential user id, an email, a phone number) anyone who guesses it could load that visitor's chat. Identity verification closes that gap: your server signs each id with a shared secret, the widget sends the signature, and HeltarChat rejects any id without a valid one. Same model as Intercom's "Identity Verification" — and anonymous visitors are never affected.
+
+**Step 1 — Turn it on & get your secret.** In **Settings → Web Chat Widget → Identity verification**, click **Generate secret** (or paste your own — **minimum 32 characters**; Generate creates a strong 64-char one), copy it, and **Save**. Store it on your **server** (an environment variable) — never in client-side code.
+
+**Step 2 — Sign the visitor id on your server.** Compute `HMAC-SHA256(visitorId, secret)`, hex-encoded, on each page render — never expose the secret to the browser:
+
+```js
+// Node.js
+import { createHmac } from 'crypto';
+
+const visitorHash = createHmac('sha256', process.env.HELTAR_WIDGET_SECRET)
+  .update(visitorId) // the exact string you pass as visitor.id
+  .digest('hex');
+```
+
+```python
+# Python
+import hmac, hashlib
+
+visitor_hash = hmac.new(
+    HELTAR_WIDGET_SECRET.encode(),
+    visitor_id.encode(),
+    hashlib.sha256,
+).hexdigest()
+```
+
+```php
+// PHP
+$visitorHash = hash_hmac('sha256', $visitorId, $HELTAR_WIDGET_SECRET);
+```
+
+**Step 3 — Pass the id and its signature to the widget.**
+
+```js
+HeltarChat.initBubble({
+  businessId: 123,
+  apiHost: 'https://<YOUR_API_HOST>',
+  visitor: {
+    id: 'user_8821', // must be the SAME string you signed
+    name: 'John Doe',
+    hash: serverComputedHash, // the value from Step 2
+  },
+});
+```
+
+The `id` you sign and the `id` you pass must match byte-for-byte — a signature is bound to one id and can't be reused for another.
+
+**What gets rejected:**
+
+| Request                               | Verification ON | Verification OFF |
+| ------------------------------------- | --------------- | ---------------- |
+| Anonymous visitor (no `visitor.id`)   | ✅ allowed      | ✅ allowed       |
+| `visitor.id` + valid `hash`           | ✅ allowed      | ✅ allowed       |
+| `visitor.id` + missing / wrong `hash` | ❌ rejected     | ✅ allowed       |
+
+> Any stable identifier works — UUIDs, `user_<id>`, phone numbers. Just don't start ids with `wv_`: that prefix is reserved for the widget's own anonymous visitors.
+
+**Turning it off.** Open the same settings and click **Disable** — the secret is removed and verification stops immediately (anonymous visitors keep working, and any `visitor.id` is accepted without a signature). Re-enabling generates a new secret, which invalidates the old one, so update your server too.
 
 ---
 
