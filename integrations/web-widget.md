@@ -59,24 +59,34 @@ Open the page, click the bubble, send a message. It should appear in your Heltar
 
 ## Configuration
 
-| Field                   | Type                | Default     | Notes                                                                                               |
-| ----------------------- | ------------------- | ----------- | --------------------------------------------------------------------------------------------------- |
-| `businessId`            | `number`            | —           | **Required.** From your settings page                                                               |
-| `apiHost`               | `string`            | same origin | Base URL of the HeltarChat API                                                                      |
-| `mode`                  | `string`            | `light`     | Colour scheme — `light`, `dark`, or `system` (follows the visitor's OS). Switchable live, see below |
-| `autoShowDelay`         | `number` ms         | —           | Auto-open the panel N ms after page-load                                                            |
-| `visitor.id`            | `string`            | —           | Identify the visitor from your own auth (phone, user id) — see "Identified visitors" below          |
-| `visitor.name`          | `string`            | —           | Display name shown to agents in the inbox                                                           |
-| `theme.primaryColor`    | `string`            | `#008069`   | Brand colour (bubble, header, send + reply buttons)                                                 |
-| `theme.headerTitle`     | `string`            | `Chat`      | Chat header title                                                                                   |
-| `theme.headerSubtitle`  | `string`            | —           | One-line subtitle                                                                                   |
-| `theme.avatarUrl`       | `string`            | —           | Square ~40px header icon                                                                            |
-| `theme.welcomeMessage`  | `string`            | —           | Shown when there's no prior chat                                                                    |
-| `theme.placement`       | `string`            | `right`     | Bubble position — `left` or `right`                                                                 |
-| `theme.width`           | `number` / `string` | `380px`     | Chat panel width — a number is px, or any CSS length (`32rem`, `90vw`)                              |
-| `theme.height`          | `number` / `string` | `620px`     | Chat panel height — a number is px, or any CSS length                                               |
-| `theme.launcherSize`    | `number` / `string` | `56px`      | Size of the floating bubble button                                                                  |
-| `theme.launcherIconUrl` | `string`            | —           | Custom image on the launcher button (replaces the default chat icon)                                |
+| Field                     | Type                | Default      | Notes                                                                                                                                                                                                                                          |
+| ------------------------- | ------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `businessId`              | `number`            | —            | **Required.** From your settings page                                                                                                                                                                                                          |
+| `apiHost`                 | `string`            | same origin  | Base URL of the HeltarChat API                                                                                                                                                                                                                 |
+| `mode`                    | `string`            | `light`      | Colour scheme — `light`, `dark`, or `system` (follows the visitor's OS). Switchable live, see below                                                                                                                                            |
+| `autoShowDelay`           | `number` ms         | —            | Auto-open the panel N ms after page-load                                                                                                                                                                                                       |
+| `dynamicPrompt`           | `string`            | —            | Per-visitor context appended to your chatbot's system prompt on every AI reply (e.g. "Visitor is on the pricing page, premium tier"). Set it from your app; it's framed as background info, not as instructions that override the bot's rules. |
+| `visitor.id`              | `string`            | —            | Identify the visitor from your own auth (phone, user id) — see "Identified visitors" below                                                                                                                                                     |
+| `visitor.name`            | `string`            | —            | Display name shown to agents in the inbox                                                                                                                                                                                                      |
+| `theme.primaryColor`      | `string`            | `#008069`    | Brand colour (bubble, header, send + reply buttons)                                                                                                                                                                                            |
+| `theme.headerTitle`       | `string`            | `Chat`       | Chat header title                                                                                                                                                                                                                              |
+| `theme.headerSubtitle`    | `string`            | —            | One-line subtitle                                                                                                                                                                                                                              |
+| `theme.avatarUrl`         | `string`            | —            | Square ~40px header icon                                                                                                                                                                                                                       |
+| `theme.welcomeMessage`    | `string`            | —            | Shown when there's no prior chat                                                                                                                                                                                                               |
+| `theme.placement`         | `string`            | `right`      | Bubble position — `left` or `right`                                                                                                                                                                                                            |
+| `theme.width`             | `number` / `string` | `380px`      | Chat panel width — a number is px, or any CSS length (`32rem`, `90vw`)                                                                                                                                                                         |
+| `theme.height`            | `number` / `string` | `620px`      | Chat panel height — a number is px, or any CSS length                                                                                                                                                                                          |
+| `theme.launcherSize`      | `number` / `string` | `56px`       | Size of the floating bubble button                                                                                                                                                                                                             |
+| `theme.launcherIconUrl`   | `string`            | —            | Custom image on the launcher button (replaces the default chat icon)                                                                                                                                                                           |
+| `theme.launcherHtml`      | `string`            | —            | Your launcher's HTML **and** CSS in one field — markup + an optional `<style>` tag (restyle the bubble, `:hover`, any surface — see below)                                                                                                     |
+| `theme.headerColor`       | `string`            | primaryColor | Chat header background                                                                                                                                                                                                                         |
+| `theme.headerTextColor`   | `string`            | white        | Header title / subtitle / close-icon colour                                                                                                                                                                                                    |
+| `theme.footerColor`       | `string`            | —            | Composer (footer) bar background                                                                                                                                                                                                               |
+| `theme.backgroundColor`   | `string`            | —            | Chat message-area background                                                                                                                                                                                                                   |
+| `theme.incomingColor`     | `string`            | —            | Visitor's own (right-side) message-bubble colour                                                                                                                                                                                               |
+| `theme.incomingTextColor` | `string`            | —            | Text colour inside the visitor's (right) bubbles                                                                                                                                                                                               |
+| `theme.outgoingColor`     | `string`            | —            | Your / the bot's (left-side) message-bubble colour                                                                                                                                                                                             |
+| `theme.outgoingTextColor` | `string`            | —            | Text colour inside the bot's (left) bubbles                                                                                                                                                                                                    |
 
 ## Customize the look
 
@@ -96,7 +106,8 @@ size and the launcher icon are all set through `theme`:
         headerTitle: 'Acme Support',
         headerSubtitle: 'We typically reply in 5 minutes',
         welcomeMessage: 'Hi! Ask us anything.',
-        avatarUrl: 'https://acme.com/logo-40.png', // header avatar
+        avatarUrl:
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnRfT7addaMdH-yhhxl0fzpt4RxBO-rqz-Rbdt0mB-fg&s', // header avatar
         placement: 'right', // 'left' | 'right'
 
         // ── size ──
@@ -105,7 +116,8 @@ size and the launcher icon are all set through `theme`:
         launcherSize: 64, // floating bubble button
 
         // ── launcher icon ──
-        launcherIconUrl: 'https://acme.com/chat-icon.png',
+        launcherIconUrl:
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnRfT7addaMdH-yhhxl0fzpt4RxBO-rqz-Rbdt0mB-fg&s',
       },
     });
   });
@@ -113,8 +125,61 @@ size and the launcher icon are all set through `theme`:
 ```
 
 Sizes accept a bare number (treated as pixels) or any CSS length string
-(`'32rem'`, `'90vw'`). On small screens the panel is automatically capped to
-the viewport, so a large `width`/`height` won't overflow on mobile.
+(`'32rem'`, `'90vw'`). On **phones** the panel ignores `width`/`height` and
+opens as a **full-screen sheet** sized to the visible area — so the on-screen
+keyboard never hides the composer and a large desktop size never overflows a
+small screen. The floating panel + your `width`/`height` apply on tablets and up.
+
+## Colours & full styling control
+
+`primaryColor` is the quickest way to brand the widget, but you can recolour
+each surface of the chat independently, and fully reshape the launcher.
+
+### Per-surface colours
+
+```js
+HeltarChat.initBubble({
+  businessId: 123,
+  apiHost: 'https://<YOUR_API_HOST>',
+  theme: {
+    headerColor: '#1f2937', // chat header background (defaults to primaryColor)
+    headerTextColor: '#f9fafb', // header title / subtitle / close
+    backgroundColor: '#0f172a', // chat message area
+    footerColor: '#111827', // composer / footer bar
+    incomingColor: '#2563eb', // the visitor's own (right) bubbles
+    incomingTextColor: '#ffffff',
+    outgoingColor: '#1e293b', // your / the bot's (left) bubbles
+    outgoingTextColor: '#e2e8f0',
+  },
+});
+```
+
+> Set a bubble's **background and its text colour together**. If you set only
+> the background, the text keeps the palette default and may not contrast —
+> especially under `mode: 'dark'` / `'system'`.
+
+### Launcher: your own HTML + CSS (one field)
+
+The floating bubble is fully customizable through a single `launcherHtml` field —
+put your markup **and** a `<style>` tag in it. Because it's injected into the
+widget's own Shadow DOM, that `<style>` can do what inline styles can't: restyle
+the bubble shell itself (shape, colour, size, shadow), add `:hover` / animations,
+and even style the rest of the widget (`.hcw-panel`, the `--hcw-*` vars …):
+
+```js
+theme: {
+  launcherHtml: `
+    <style>
+      .hcw-bubble-btn { background: #ff5722; border-radius: 50%; }
+      .hcw-bubble-btn:hover { transform: scale(1.08); }
+    </style>
+    <span style="font-size:24px">💬</span>
+  `,
+}
+```
+
+The `<style>` is scoped to the widget — it can't leak onto your page, and your
+page's CSS can't reach in. Leave `launcherHtml` empty for the default bubble.
 
 ## Light / dark mode
 
@@ -135,6 +200,19 @@ document.querySelector('heltar-chat-bubble').setAttribute('mode', 'dark');
 ```
 
 `theme.primaryColor` re-brands the accent colour in both palettes; `HeltarChat.setTheme({ primaryColor: '#7c3aed' })` changes it live.
+
+## Greet visitors first (optional)
+
+By default the bot only replies after the visitor writes. To have it **open the
+conversation itself**, turn on **Bot Sends First Message** in your chatbot's
+settings (Playground → Advanced). Then, when a first-time visitor opens the
+widget, the bot sends an AI-generated greeting right away — no visitor message
+needed.
+
+It fires once, and only when the visitor has **no prior conversation**, so it
+never interrupts an ongoing chat or repeats on reload. This is the web chat
+widget only — WhatsApp threads are unaffected (there the customer must message
+first).
 
 ## Identified visitors (recommended for logged-in users)
 
