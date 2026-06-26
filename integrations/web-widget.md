@@ -27,12 +27,12 @@ Wildcard (`*.`) covers subdomains. HTTPS only.
 Your settings page shows this snippet **pre-filled** with your exact values — copy it from there. It looks like:
 
 ```html
-<script src="https://<YOUR_DASHBOARD_HOST>/web-widget.js" defer></script>
+<script src="{{DASHBOARD_URL}}/web-widget.js" defer></script>
 <script>
   window.addEventListener('DOMContentLoaded', function () {
     HeltarChat.initBubble({
       businessId: <YOUR_BUSINESS_ID>,
-      apiHost: 'https://<YOUR_API_HOST>',
+      apiHost: '{{API_URL}}',
       theme: {
         primaryColor: '#008069',
         headerTitle: 'Acme Support',
@@ -44,10 +44,10 @@ Your settings page shows this snippet **pre-filled** with your exact values — 
 </script>
 ```
 
-Two HeltarChat-provided hosts — **Heltar serves both; you don't host either**:
+The two hosts are filled in automatically with your account's values — both are served for you; you host neither:
 
-- `<YOUR_DASHBOARD_HOST>` — the HeltarChat dashboard that serves the script bundle (e.g. `app.heltar.com`). This is where `/web-widget.js` lives.
-- `<YOUR_API_HOST>` — the HeltarChat API the widget talks to (e.g. `api.heltar.com`). Usually a **different** host from the dashboard, so don't reuse the dashboard host here.
+- `{{DASHBOARD_URL}}` — the dashboard that serves the script bundle. This is where `/web-widget.js` lives.
+- `{{API_URL}}` — the API the widget talks to. Usually a **different** host from the dashboard.
 
 The floating bubble appears in the bottom-right corner.
 
@@ -94,12 +94,12 @@ Everything below is optional — pass only what you want to change. Colours,
 size and the launcher icon are all set through `theme`:
 
 ```html
-<script src="https://<YOUR_DASHBOARD_HOST>/web-widget.js" defer></script>
+<script src="{{DASHBOARD_URL}}/web-widget.js" defer></script>
 <script>
   window.addEventListener('DOMContentLoaded', function () {
     HeltarChat.initBubble({
       businessId: 123,
-      apiHost: 'https://<YOUR_API_HOST>',
+      apiHost: '{{API_URL}}',
       mode: 'system', // 'light' | 'dark' | 'system'
       theme: {
         primaryColor: '#7c3aed', // brand accent (bubble, header, buttons)
@@ -140,7 +140,7 @@ each surface of the chat independently, and fully reshape the launcher.
 ```js
 HeltarChat.initBubble({
   businessId: 123,
-  apiHost: 'https://<YOUR_API_HOST>',
+  apiHost: '{{API_URL}}',
   theme: {
     headerColor: '#1f2937', // chat header background (defaults to primaryColor)
     headerTextColor: '#f9fafb', // header title / subtitle / close
@@ -221,7 +221,7 @@ If your site already knows the visitor (logged-in user, a phone you've verified,
 ```js
 HeltarChat.initBubble({
   businessId: 123,
-  apiHost: 'https://<YOUR_API_HOST>',
+  apiHost: '{{API_URL}}',
   visitor: {
     id: '919876543210', // a phone number, user id, or any stable identifier
     name: 'John Doe',
@@ -345,7 +345,7 @@ $visitorHash = hash_hmac('sha256', $visitorId, $HELTAR_WIDGET_SECRET);
 ```js
 HeltarChat.initBubble({
   businessId: 123,
-  apiHost: 'https://<YOUR_API_HOST>',
+  apiHost: '{{API_URL}}',
   visitor: {
     id: 'user_8821', // must be the SAME string you signed
     name: 'John Doe',
