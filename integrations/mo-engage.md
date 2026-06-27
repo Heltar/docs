@@ -28,9 +28,15 @@ Configure the platform as a WhatsApp connector in MoEngage so its campaigns, jou
 
 Log in to the MoEngage dashboard and navigate to **Settings → Channels → WhatsApp → Sender configuration**.
 
+> [!NOTE]
+> You'll connect using MoEngage's **Auth Key** connector and your platform API key — so keep your API key handy (**Settings → Developer Tools → API Keys**). You pick the connector in Step 2 and enter the key in Step 4.
+
 ### 2. Add the connector
 
 Click **+ Add connector**, then pick the connector for the platform from the **Choose a connector** dropdown and add it.
+
+> [!TIP]
+> Don't get confused if you don't see **Heltar** by name in the **Choose a connector** dropdown — it lists MoEngage's connector options (Gupshup, Infobip, and so on). Select the **Auth Key** connector option, which lets you connect with just your API key. If you're unsure which one to pick, check with your MoEngage account team or Heltar support.
 
 ### 3. Add a sender
 
@@ -38,7 +44,7 @@ Select the connector you just added. **Sender 1** is auto-populated — use **+ 
 
 ### 4. Set the authentication (Auth key)
 
-In the sender details, enter your platform API key in the **Auth key** (API key) field.
+In the sender details, find the field named exactly **Auth key** and enter your platform API key there.
 
 > [!IMPORTANT]
 > MoEngage sends this credential using the `Authentication` header (not the standard `Authorization`). The platform accepts both, so it works either way — just make sure the value resolves to `Bearer <YOUR_API_KEY>`. If MoEngage doesn't add the `Bearer ` prefix for you, enter the full value `Bearer <YOUR_API_KEY>` in the field.
