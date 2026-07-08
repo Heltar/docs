@@ -214,6 +214,94 @@ never interrupts an ongoing chat or repeats on reload. This is the web chat
 widget only — WhatsApp threads are unaffected (there the customer must message
 first).
 
+## Trigger the chat from your site (not just the icon)
+
+The floating icon isn't the only way in — your site can open the chat itself,
+from any button or page event. Everything below works with the standard
+snippet; no extra setup on the HeltarChat side.
+
+### Open the chat from your own button
+
+Add `onclick="HeltarChat.open()"` to any element on your page:
+
+```html
+<button onclick="HeltarChat.open()">Chat with us</button>
+```
+
+Clicking it opens the chat panel exactly like a click on the floating icon —
+same conversation, same chatbot. `HeltarChat.close()` collapses it (the ✕ in
+the panel header and the Esc key already work, so you rarely need it).
+
+You can also call `open()` from any JavaScript event — a timer, a scroll
+position, a specific page, exit intent:
+
+```js
+// e.g. open automatically after 5 seconds on the pricing page
+setTimeout(() => HeltarChat.open(), 5000);
+```
+
+The only rule: call `HeltarChat.open()` **after** the widget script has loaded
+and your `initBubble` snippet has run. A button `onclick` is always safe —
+by the time a visitor can click, the widget is ready.
+
+### Hide the floating pill — your button as the only launcher
+
+If your own button should be the _only_ way in, hide the default floating
+launcher with two theme fields in your existing snippet:
+
+```html
+<script src="{{DASHBOARD_URL}}/web-widget.js" defer></script>
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    HeltarChat.initBubble({
+      businessId: <YOUR_BUSINESS_ID>,
+      apiHost: '{{API_URL}}',
+      theme: {
+        // Hides the floating pill — your own button is the only launcher.
+        launcherHtml: '<style>.hcw-bubble-btn{display:none}</style>',
+        launcherSize: 0,
+      },
+    });
+  });
+</script>
+
+<button onclick="HeltarChat.open()">Chat with us</button>
+```
+
+With this, the widget has no visible footprint until `open()` is called — no
+pill, no bubble. Visitors close the panel with the ✕ in its header (or Esc),
+and if they reload mid-conversation the panel reopens where they left off.
+
+### Open automatically after N seconds
+
+No code needed — set `autoShowDelay` (milliseconds) in your snippet and the
+panel opens by itself after page load:
+
+```js
+HeltarChat.initBubble({
+  businessId: <YOUR_BUSINESS_ID>,
+  apiHost: '{{API_URL}}',
+  autoShowDelay: 3000, // opens 3s after page load
+});
+```
+
+### Have the bot speak first
+
+Turn on **Bot Sends First Message** in your chatbot's settings (Playground →
+Advanced), as described in "Greet visitors first" above. The greeting fires
+whenever the panel opens — via the icon, your button, `open()`, or
+`autoShowDelay` — so the visitor is welcomed without typing anything.
+
+### Testing checklist
+
+- Click your button → the panel opens; send a message → it appears in your
+  HeltarChat inbox.
+- The bot's first message goes only to **new visitors** (no prior
+  conversation). Test the greeting in a fresh incognito window each time —
+  otherwise it can look like it isn't firing.
+- Test from a page served on an allowlisted domain (see "Allowlist your
+  domain" above). Opening the HTML directly from disk (`file://`) won't work.
+
 ## Identified visitors (recommended for logged-in users)
 
 If your site already knows the visitor (logged-in user, a phone you've verified, an internal user id, …), pass that identity to the widget. Agents will find the **same conversation across the visitor's devices and channels** — no surprise duplicate threads.
