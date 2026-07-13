@@ -321,13 +321,10 @@ When you select **Link Tracker** or **Custom Domain Link Tracker**:
 
 A custom domain lets you use your own branded short links (e.g., `https://links.yourbrand.com/abc123`) instead of the default Heltar API domain.
 
-1. Go to **Settings** -> **Template Link Tracker**
-2. Enter your custom domain URL (e.g., `https://links.yourbrand.com`)
-3. Click **Register Domain**
-4. **Contact Heltar support** to complete domain verification and DNS setup
+Setup involves a short back-and-forth with Heltar support: you choose a subdomain, add two DNS records we send you (one for the TLS certificate, one pointing the domain to Heltar), and then register the domain here. Follow the step-by-step guide: [Custom Domain for Link Tracker](/docs/guides/link-tracker-custom-domain).
 
 > [!IMPORTANT]
-> After registering, you need to point your domain to Heltar's servers. Contact support for the DNS configuration details. The custom domain will not work until this setup is complete.
+> The custom domain will not work until the DNS and certificate setup from the guide is complete. Register the domain in **Settings → Template Link Tracker** only after Heltar confirms the setup.
 
 ---
 

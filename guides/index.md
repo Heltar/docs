@@ -13,3 +13,4 @@ Practical, step-by-step guides for common integration patterns and use cases wit
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | [Custom Data in Webhooks](/docs/guides/custom-data-in-webhooks)             | Pass custom data (order IDs, campaign tags) through template messages and receive it back in webhook callbacks |
 | [Receiving Media from Webhooks](/docs/guides/receiving-media-from-webhooks) | Download images, videos, documents, and audio files sent by customers                                          |
+| [Custom Domain for Link Tracker](/docs/guides/link-tracker-custom-domain)   | Set up your own branded domain for shortened, trackable links in template messages                             |
