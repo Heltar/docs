@@ -57,6 +57,26 @@ Response:
 - `clientWaNumber` — the lead's WhatsApp number (any of `919999999999`, `+91 99999 99999` — it's normalised). **This is the only required field.**
 - `agentEmail` _(optional)_ — the email of the agent opening the chat. When it matches a team member in your business, the session is **attributed to that agent** — replies send under their name and the session shows up under them in your active-sessions list. Omit it (or pass an email that isn't a team member) for a plain business-level session.
 - `encrypt` _(optional, default `true`)_ — when `true`, the lead's number never reaches the browser: every API/realtime payload carries an opaque, per-conversation reference instead, so your agents can chat without seeing the actual phone number. Set `"encrypt": false` only if you explicitly want the real number visible in the panel.
+- `ui` _(optional)_ — per-session panel options. Everything is opt-in; omit `ui` (or any field) to keep today's behaviour. Because you mint a fresh session each time an agent opens a lead, you control all of this per open:
+  - `sessionExpiredText` — free text (1–200 chars), shown **verbatim** in place of the **Send template** button whenever the 24-hour reply window is closed for this session. Any wording, any language. Typical use: your CRM already triggered the template automatically, so instead of prompting agents to send another one you show "Please wait while the customer replies". A customer reply reopens the normal composer automatically.
+  - `hideCallButton` — `true` hides the call button in the panel header.
+  - `hideChatOptions` — `true` hides the **chat options** menu (assignment, open/close, bot controls, etc.) in the panel header.
+  - `showRefresh` — `true` adds a refresh button in the panel header that re-fetches the conversation on demand — handy as a manual fallback on flaky agent networks (messages otherwise arrive in realtime).
+
+  ```json
+  {
+    "clientWaNumber": "919999999999",
+    "ui": {
+      "sessionExpiredText": "Please wait while the customer replies",
+      "hideCallButton": true,
+      "hideChatOptions": true,
+      "showRefresh": true
+    }
+  }
+  ```
+
+  > Try all of this without writing code: **Settings → Embedded chat** in your dashboard has a **Try it live** panel — enter a lead's number, set the panel options with toggles, open a live preview (floating, inline, or a new tab), and copy a cURL snippet that carries your exact configuration.
+
 - `embedUrl` is **single-use** and short-lived. Mint a fresh one each time an agent opens a lead.
 
 ## 3. Open the panel (frontend)

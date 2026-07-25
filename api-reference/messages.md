@@ -340,7 +340,7 @@ Send a message with a dropdown list of options (max 10 items per section, max 10
 method: GET
 endpoint: /v1/messages/:clientWaNumber
 title: Get Client Messages
-description: Retrieve conversation history with a specific contact. Messages are returned in reverse chronological order (newest first).
+description: Retrieve conversation history with a specific contact. The newest `limit` messages are returned in chronological order (oldest first).
 
 ## Path Parameters
 
@@ -348,26 +348,40 @@ description: Retrieve conversation history with a specific contact. Messages are
 
 ## Query Parameters
 
-- limit: number - Maximum messages to return (default: 50, max: 100)
-- offset: number - Pagination offset
+- limit: number - Maximum messages to return (default: 10000, max: 10000)
 
 ## Response
 
 ```response
 {
-  "data": [
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "wamid": "wamid.HBgLOTE5ODc...",
-      "type": "text",
-      "content": "Hello!",
-      "status": "delivered",
-      "timestamp": "2024-01-15T10:30:00Z",
-      "direction": "outbound"
-    }
-  ]
+  "message": "Successfully retrieved messages",
+  "data": {
+    "messages": [
+      {
+        "wamid": "wamid.HBgLOTE5ODc...",
+        "type": "text",
+        "body": "Hello!",
+        "status": "received",
+        "timestamp": "2026-01-15T10:30:00.000Z"
+      },
+      {
+        "wamid": "wamid.HBgLOTE5ODd...",
+        "type": "template",
+        "templateName": "order_update",
+        "body": "Your order has shipped.",
+        "status": "delivered",
+        "timestamp": "2026-01-15T10:31:00.000Z"
+      }
+    ],
+    "clientWaNumber": "919876543210",
+    "conversationExpire": "2026-01-16T10:30:00.000Z",
+    "canMessage": true
+  }
 }
 ```
+
+- `status` is the direction discriminator: `received` marks an inbound (customer) message — treat every other value as outbound. Outbound messages progress `waiting → sent → delivered → read` (or `failed`); campaign/template messages can additionally show `responded`, `clicked`, `clicked_responded`, or `expired`. The timestamp of the newest `received` message is the last inbound customer activity.
+- `conversationExpire` — when the current 24-hour reply window closes (last inbound message + 24h). `canMessage` is `true` while that window is open.
 
 :::
 

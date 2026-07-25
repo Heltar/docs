@@ -22,8 +22,9 @@ description: Set or update the webhook endpoints where you'll receive event noti
 - urls: array [required] - Array of webhook configuration objects
   - url: string [required] - Your HTTPS webhook endpoint URL
   - isEnabled: boolean [required] - Whether this webhook is active
-  - fields: array [required] - Event types to receive (see Webhook Types below)
+  - fields: array - Event types to receive (see Webhook Types below); defaults to `["metaWebhooks"]`
   - verifyToken: string - Optional token for hub challenge verification
+  - headers: object - Optional static headers used to authenticate deliveries (e.g. `{"X-My-Token": "secret"}`). Sent on every raw-payload delivery (`metaWebhooks`, `metaCustomFieldHook`); format-converted deliveries (CleverTap / WebEngage / MoEngage) do not include them
 
 ```request
 {
@@ -31,7 +32,8 @@ description: Set or update the webhook endpoints where you'll receive event noti
     {
       "url": "https://your-server.com/webhooks/whatsapp",
       "isEnabled": true,
-      "fields": ["metaWebhooks"]
+      "fields": ["metaWebhooks"],
+      "headers": { "X-My-Token": "your-shared-secret" }
     }
   ]
 }
@@ -41,10 +43,19 @@ description: Set or update the webhook endpoints where you'll receive event noti
 
 ```response
 {
-  "code": "OK",
-  "message": "Webhook URL configured successfully"
+  "message": "Successfully added or updated webhook URL",
+  "data": [
+    {
+      "url": "https://your-server.com/webhooks/whatsapp",
+      "isEnabled": true,
+      "fields": ["metaWebhooks"],
+      "headers": { "X-My-Token": "*************ecret" }
+    }
+  ]
 }
 ```
+
+`data` returns **all** webhooks registered for your business (not just the ones in this request). Header values are masked in responses — only the last 5 characters are shown (values of 5 characters or fewer are fully masked). When updating a webhook, resend a masked value (any value starting with `*`) to keep the stored secret unchanged; omitting `headers` entirely on an update **removes** the stored headers.
 
 :::
 
@@ -76,10 +87,10 @@ Each webhook URL subscribes to one or more **field types** that control which ev
 If you provide a `verifyToken` when configuring your webhook, Heltar will send a verification request to your URL:
 
 ```
-GET https://your-server.com/webhooks/whatsapp?hub.mode=subscribe&hub.challenge=RANDOM_STRING&hub.verify_token=YOUR_TOKEN
+GET https://your-server.com/webhooks/whatsapp?hub.mode=subscribe&hub.challenge=123456789&hub.verify_token=YOUR_TOKEN
 ```
 
-Your server must respond with the `hub.challenge` value to confirm ownership.
+Your server should echo the raw `hub.challenge` value (a random numeric string) to confirm ownership. If your endpoint responds with an HTTP error status, the configure call fails; an unreachable endpoint or a wrong echo is logged on our side but does not block saving — so verify your handler echoes correctly before relying on it.
 
 ---
 
@@ -87,16 +98,22 @@ Your server must respond with the `hub.challenge` value to confirm ownership.
 method: DELETE
 endpoint: /v1/business/webhook-url
 title: Delete Webhook URL
-description: Remove your webhook configuration to stop receiving event notifications.
+description: Remove one registered webhook URL to stop receiving event notifications on it. Returns 404 if the URL is not registered.
+
+## Query Parameters
+
+- url: string [required] - The exact webhook URL to remove
 
 ## Response
 
 ```response
 {
-  "code": "OK",
-  "message": "Webhook URL removed"
+  "message": "Successfully deleted webhook URL",
+  "data": []
 }
 ```
+
+`data` contains your remaining webhook configurations (header values masked).
 
 :::
 
@@ -314,6 +331,8 @@ Your webhook should respond quickly (within 5 seconds) to avoid timeouts. Proces
 
 :::code-group
 
+There is no event-name envelope: deliveries are the raw payloads shown above. Inbound customer messages arrive in `value.messages[]`, outbound status changes (including failures) in `value.statuses[]` — discriminate on which array is present.
+
 ```javascript
 // Express.js example
 const express = require('express');
@@ -324,36 +343,34 @@ app.use(express.json());
 const eventQueue = [];
 
 app.post('/webhook', (req, res) => {
-  const { event, data, timestamp } = req.body;
-
   // Respond immediately
   res.status(200).send('OK');
 
   // Queue for async processing
-  eventQueue.push({ event, data, timestamp });
+  eventQueue.push(req.body);
   processQueue();
 });
 
 async function processQueue() {
   while (eventQueue.length > 0) {
-    const { event, data } = eventQueue.shift();
-
-    switch (event) {
-      case 'message.received':
-        await handleNewMessage(data);
-        break;
-      case 'message.status':
-        await handleStatusUpdate(data);
-        break;
-      case 'message.failed':
-        await handleFailedMessage(data);
-        break;
+    const payload = eventQueue.shift();
+    for (const entry of payload.entry ?? []) {
+      for (const change of entry.changes ?? []) {
+        const value = change.value ?? {};
+        for (const message of value.messages ?? []) {
+          await handleNewMessage(message); // inbound customer message
+        }
+        for (const status of value.statuses ?? []) {
+          if (status.status === 'failed') await handleFailedMessage(status);
+          else await handleStatusUpdate(status);
+        }
+      }
     }
   }
 }
 
-async function handleNewMessage(data) {
-  console.log(`New message from ${data.from}: ${data.text?.body}`);
+async function handleNewMessage(message) {
+  console.log(`New message from ${message.from}: ${message.text?.body}`);
   // Your logic: save to DB, trigger bot, notify agent, etc.
 }
 
@@ -370,27 +387,25 @@ event_queue = queue.Queue()
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    data = request.json
-
     # Respond immediately
-    event_queue.put(data)
+    event_queue.put(request.json)
     return 'OK', 200
 
 def process_events():
     while True:
-        data = event_queue.get()
-        event = data.get('event')
-        payload = data.get('data')
-
-        if event == 'message.received':
-            handle_new_message(payload)
-        elif event == 'message.status':
-            handle_status_update(payload)
+        payload = event_queue.get()
+        for entry in payload.get('entry', []):
+            for change in entry.get('changes', []):
+                value = change.get('value', {})
+                for message in value.get('messages', []):
+                    handle_new_message(message)  # inbound customer message
+                for status in value.get('statuses', []):
+                    handle_status_update(status)
 
         event_queue.task_done()
 
-def handle_new_message(data):
-    print(f"New message from {data['from']}: {data.get('text', {}).get('body')}")
+def handle_new_message(message):
+    print(f"New message from {message['from']}: {message.get('text', {}).get('body')}")
 
 # Start background processor
 threading.Thread(target=process_events, daemon=True).start()
@@ -400,6 +415,17 @@ if __name__ == '__main__':
 ```
 
 :::
+
+---
+
+## Delivery & Retries
+
+- **Request headers.** Every delivery is a `POST` with `Content-Type: application/json`, an `X-Request-Timestamp` header (ISO 8601, set when the delivery attempt is made), and — on raw-payload field types (`metaWebhooks`, `metaCustomFieldHook`) — any custom `headers` you registered. There is no signature header — authenticate deliveries with your own static header.
+- **Timeout.** Each delivery attempt times out after **10 seconds**. Respond `200` as fast as possible (well under 5s) and process asynchronously.
+- **What is retried.** Only network errors, timeouts, and `5xx` responses are retried. A `4xx` response is treated as permanently rejected — it is **not** retried.
+- **Retry schedule.** Up to **5 retries** with randomized, increasing delays: roughly **1–5 minutes** for the first retry, growing to **4–5 hours** for the last. A retried event can therefore arrive long after — and out of order with — newer events. Order by the payload's own timestamps, never by arrival time.
+- **Duplicates.** The same event is suppressed within a ~10-minute window, but redelivery beyond that is possible (and Meta itself can redeliver) — make handlers idempotent (dedupe on the message id / `(wamid, status)` pair).
+- **Auto-disable.** Consecutive failed deliveries (the counter resets on any success) trigger a warning email after ~10 failures; at ~100 the webhook is **automatically disabled** and you're notified. Re-enable it with the configure endpoint above once your endpoint is healthy.
 
 ---
 
@@ -413,12 +439,9 @@ if __name__ == '__main__':
 | **Respond fast**            | Return 200 status within 5 seconds                 |
 | **Process async**           | Queue events for background processing             |
 | **Handle duplicates**       | Events may be delivered more than once             |
-| **Log everything**          | Keep webhook logs for debugging                    |
 | **Use idempotent handlers** | Same event processed twice should have same result |
-| **Monitor failures**        | Set up alerts for webhook errors                   |
-
-> [!WARNING]
-> If your webhook consistently fails or times out, we may temporarily disable it. Ensure your endpoint is reliable and responds quickly.
+| **Tolerate reordering**     | Order by payload timestamps, not arrival time      |
+| **Monitor failures**        | Sustained failures auto-disable the webhook        |
 
 ---
 
