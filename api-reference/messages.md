@@ -340,7 +340,7 @@ Send a message with a dropdown list of options (max 10 items per section, max 10
 method: GET
 endpoint: /v1/messages/:clientWaNumber
 title: Get Client Messages
-description: Retrieve conversation history with a specific contact. The newest `limit` messages are returned in chronological order (oldest first).
+description: Retrieve conversation history with a specific contact. The newest `limit` messages are returned in chronological order (oldest first). Use the `before`/`beforeId` cursor to page further back through long histories.
 
 ## Path Parameters
 
@@ -349,6 +349,8 @@ description: Retrieve conversation history with a specific contact. The newest `
 ## Query Parameters
 
 - limit: number - Maximum messages to return (default: 10000, max: 10000)
+- before: string - ISO timestamp of the oldest message you already have. Returns only messages older than it.
+- beforeId: string - `wamid` of that same oldest message. Send it together with `before` so messages sharing a timestamp are not skipped or repeated.
 
 ## Response
 
@@ -375,11 +377,13 @@ description: Retrieve conversation history with a specific contact. The newest `
     ],
     "clientWaNumber": "919876543210",
     "conversationExpire": "2026-01-16T10:30:00.000Z",
+    "hasMore": true,
     "canMessage": true
   }
 }
 ```
 
+- `hasMore` — older messages exist beyond this page. To fetch them, call again with `before` set to the first (oldest) message's `timestamp` and `beforeId` set to its `wamid`. Repeat until `hasMore` is `false`.
 - `status` is the direction discriminator: `received` marks an inbound (customer) message — treat every other value as outbound. Outbound messages progress `waiting → sent → delivered → read` (or `failed`); campaign/template messages can additionally show `responded`, `clicked`, `clicked_responded`, or `expired`. The timestamp of the newest `received` message is the last inbound customer activity.
 - `conversationExpire` — when the current 24-hour reply window closes (last inbound message + 24h). `canMessage` is `true` while that window is open.
 
