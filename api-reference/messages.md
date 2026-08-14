@@ -124,18 +124,14 @@ Send images, videos, documents, audio files, or stickers.
 
 Send pre-approved message templates (required for initiating conversations outside the 24-hour window).
 
-| Field           | Type   | Required | Description                                                            |
-| --------------- | ------ | -------- | ---------------------------------------------------------------------- |
-| `templateName`  | string | Yes      | Template name (lowercase, underscores)                                 |
-| `languageCode`  | string | Yes      | Language code (e.g., `en`, `hi`, `es`)                                 |
-| `variables`     | array  | No       | Array of component variables (see below)                               |
-| `bidMultiplier` | number | No       | Scales the template's max price for this message (MARKETING templates) |
+| Field          | Type   | Required | Description                              |
+| -------------- | ------ | -------- | ---------------------------------------- |
+| `templateName` | string | Yes      | Template name (lowercase, underscores)   |
+| `languageCode` | string | Yes      | Language code (e.g., `en`, `hi`, `es`)   |
+| `variables`    | array  | No       | Array of component variables (see below) |
 
 > [!NOTE]
 > Our API uses `variables` which maps to Meta's `components` structure. Each variable object has a `type` and `parameters` array.
-
-> [!TIP]
-> If the template has a [max price](/docs/api/templates#max-price-marketing-templates) set, `bidMultiplier` adjusts it for this send — e.g. `1.5` raises the cap by 50%, `0.5` halves it. Defaults to `1`.
 
 ---
 
