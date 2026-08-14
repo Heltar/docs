@@ -26,6 +26,7 @@ description: Create and send a campaign immediately. Messages are queued and sen
 - templateName: string [required] - Approved template name to use
 - languageCode: string [required] - Template language code
 - messages: array [required] - Array of recipients with personalized variables
+- bidMultiplier: number - Scales the template's max price for every message in this campaign (MARKETING templates; e.g. 1.5 raises the cap by 50% — see Max Price in the Templates API)
 - campaignDesc: string - Campaign description
 - source: string - Campaign source (web, api, csv)
 

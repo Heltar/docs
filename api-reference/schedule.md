@@ -146,6 +146,7 @@ description: Schedule a bulk template message campaign to be sent at a future ti
 - messages: array [required] - Array of recipients with personalized variables
 - scheduleTime: number [required] - Unix timestamp for when to send (must be in the future, within 2 years)
 - campaignDesc: string - Campaign description
+- bidMultiplier: number - Scales the template's max price for every message in this campaign (MARKETING templates; e.g. 1.5 raises the cap by 50% — see Max Price in the Templates API)
 
 ```request
 {

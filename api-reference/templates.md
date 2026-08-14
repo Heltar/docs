@@ -26,6 +26,7 @@ description: Submit a new message template for Meta approval.
 - category: string [required] - UTILITY, MARKETING, or AUTHENTICATION
 - language: string [required] - Language code (e.g., en, hi, es)
 - components: array [required] - Template components (header, body, footer, buttons)
+- optimization_spec: object - Max price for MARKETING templates delivered via Marketing Messages (see the Max Price section below)
 
 ```request
 {
@@ -122,6 +123,71 @@ description: Submit a new message template for Meta approval.
 ```
 
 **Button Limits:** Max 3 buttons for QUICK_REPLY, max 2 for URL/PHONE.
+
+---
+
+## Max Price (Marketing Templates)
+
+MARKETING templates delivered through Meta's Marketing Messages can carry a maximum price you are willing to pay per delivery. Meta charges that amount or less. Set it with `optimization_spec` when creating or updating a template:
+
+```json
+{
+  "optimization_spec": {
+    "bid_amount": 87000,
+    "bid_strategy": "LOWEST_COST_WITH_BID_CAP"
+  }
+}
+```
+
+| Field          | Type    | Required | Description                                                               |
+| -------------- | ------- | -------- | ------------------------------------------------------------------------- |
+| `bid_amount`   | integer | Yes      | Max price per **1,000 deliveries**, in your WABA currency's smallest unit |
+| `bid_strategy` | string  | Yes      | Only `LOWEST_COST_WITH_BID_CAP` is supported                              |
+
+To convert a per-delivery target price: convert to the smallest currency unit, then multiply by 1,000. For example, ₹0.87 per delivery → 87 paise × 1,000 = `87000`; $0.05 per delivery → 5 cents × 1,000 = `5000`.
+
+The max price applies to every send of that template — single messages and campaigns alike. You can scale it per send or per campaign with `bidMultiplier` (see [Messages](/docs/api/messages) and [Campaigns](/docs/api/campaigns)).
+
+---
+
+:::api
+method: POST
+endpoint: /v1/templates/:templateId
+title: Update Template
+description: Update an existing template — for example, set or change its max price.
+
+## Path Parameters
+
+- templateId: string [required] - Template ID from Meta
+
+## Body Parameters
+
+- category: string - UTILITY, MARKETING, or AUTHENTICATION
+- components: array - Template components (header, body, footer, buttons)
+- optimization_spec: object - Max price for MARKETING templates (see the Max Price section above)
+
+```request
+{
+  "optimization_spec": {
+    "bid_amount": 4000,
+    "bid_strategy": "LOWEST_COST_WITH_BID_CAP"
+  }
+}
+```
+
+## Response
+
+```response
+{
+  "code": "OK",
+  "message": "Successfully update template Id:(1234567890)!",
+  "data": {
+    "success": true
+  }
+}
+```
+
+:::
 
 ---
 
