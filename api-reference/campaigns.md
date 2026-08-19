@@ -25,9 +25,14 @@ description: Create and send a campaign immediately. Messages are queued and sen
 - campaignName: string [required] - Campaign name for identification
 - templateName: string [required] - Approved template name to use
 - languageCode: string [required] - Template language code
-- messages: array [required] - Array of recipients with personalized variables
+- messages: array - Array of recipients with personalized variables. Required unless you send `finalPayloadFileUrl` instead
+- finalPayloadFileUrl: string - URL of an uploaded NDJSON file holding the recipients, one per line. Use this instead of `messages` for large campaigns
+- recipientCount: number - Number of recipients in that file. Required with `finalPayloadFileUrl`
 - campaignDesc: string - Campaign description
 - source: string - Campaign source (web, api, csv)
+
+> [!NOTE]
+> Supply **either** `messages` **or** `finalPayloadFileUrl` with `recipientCount` — not both.
 
 ```request
 {
@@ -79,6 +84,54 @@ description: Create and send a campaign immediately. Messages are queued and sen
 ```
 
 :::
+
+---
+
+## Large campaigns
+
+Sending a few lakh recipients inside `messages` makes the request body very
+large. Upload the recipients as a file instead and send its URL: the request
+stays a couple of KB whatever the campaign's size, and there is no recipient
+count at which it stops working.
+
+The file is **NDJSON** — one JSON object per line, each line exactly what a
+`messages` entry would have been:
+
+```
+{"clientWaNumber":"919876543210","variables":[{"type":"text","text":"John"}]}
+{"clientWaNumber":"919876543211","variables":[{"type":"text","text":"Jane"}]}
+```
+
+Upload it wherever the API can read it over HTTPS, then send:
+
+```json
+{
+  "campaignName": "Diwali Sale 2024",
+  "templateName": "promo_offer",
+  "languageCode": "en",
+  "finalPayloadFileUrl": "https://your-storage.example.com/diwali-recipients.ndjson",
+  "recipientCount": 200000,
+  "source": "api"
+}
+```
+
+`recipientCount` is a ceiling, not a hint: if the file turns out to hold more
+recipients than you declared, only the first `recipientCount` of them are sent.
+Fewer is fine — the campaign simply sends what the file holds.
+
+Each line must be a single recipient and no line may exceed 1,000,000
+characters. A file written as one big JSON array is a single line and will be
+rejected with nothing sent; write one recipient per line instead.
+
+The response carries the `campaign` object as usual. `messagesResponse` comes
+back empty for this form — the recipients are already in the file you supplied,
+so they are not echoed. Track delivery with
+`GET /v1/campaigns/{campaignId}` as normal.
+
+The call returns once every recipient in the file has been queued, so a very
+large file keeps the request open a little longer. Sending then continues in the
+background at your account's send rate, so `statsSent` climbs over the following
+minutes rather than being final when the call returns.
 
 ---
 
