@@ -280,3 +280,30 @@ description: Enable or disable chatbot for a specific contact.
 | `conversationExpire`     | string  | ISO 8601 timestamp when 24-hour window expires |
 | `latestMessageTimestamp` | string  | Timestamp of most recent message               |
 | `createdAt`              | string  | When the contact was created                   |
+
+---
+
+:::api
+method: DELETE
+endpoint: /v1/clients/:clientWaNumber/contact-book
+title: Delete Contact Book Entry
+description: Remove a contact from WhatsApp's contact book so their phone number stops being included in webhooks.
+
+## Path Parameters
+
+- clientWaNumber: string [required] - The contact's WhatsApp user ID, for example `BD.1068713429041673`
+
+WhatsApp keeps a contact book for your business so that a contact who hides
+their phone number behind a username can still be recognised. Deleting an entry
+stops their phone number from being included in webhooks for every business
+phone number in your portfolio, until a new interaction records it again.
+
+```response
+{
+  "success": true,
+  "message": "Contact book entry deleted",
+  "data": { "messaging_product": "whatsapp", "success": true, "deleted": true }
+}
+```
+
+:::

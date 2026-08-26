@@ -61,6 +61,37 @@ description: Send one or more WhatsApp messages in a single request. Supports te
 
 > [!TIP]
 > All message types share common fields: `clientWaNumber` (required), `messageType` (required), and `contextId` (optional - for replies).
+>
+> `clientWaNumber` takes a phone number with country code (`919876543210`) or,
+> for a contact who hides their number behind a WhatsApp username, the user ID
+> from their incoming message (`BD.1068713429041673`). Everything works with a
+> user ID except one-tap, zero-tap and copy-code authentication templates, which
+> WhatsApp only delivers to a phone number.
+
+### Ask for a Phone Number
+
+A contact who hides their number behind a WhatsApp username reaches you with
+only a user ID. Send this interactive message to ask them to share their phone
+number; when they tap the button, their number arrives in a `contacts` message
+webhook with `"origin": "contact_request"`.
+
+```json
+{
+  "clientWaNumber": "BD.1068713429041673",
+  "messageType": "interactive",
+  "interactive": {
+    "type": "request_contact_info",
+    "body": {
+      "text": "Share your number so we can update you about your order."
+    },
+    "action": { "name": "request_contact_info" }
+  }
+}
+```
+
+The button label cannot be customised — WhatsApp renders it in the recipient's
+own language. The same button is available on utility and marketing templates
+as a `REQUEST_CONTACT_INFO` button.
 
 ### Text Message
 

@@ -163,6 +163,17 @@ Triggered when a customer sends you a message.
 }
 ```
 
+> [!IMPORTANT]
+> **Contacts who hide their phone number.** A WhatsApp user can pick a username
+> and keep their number private. Their messages arrive with **no `from` field** —
+> only `from_user_id`, WhatsApp's user ID for that person on your business
+> account (for example `BD.1068713429041673`), alongside
+> `contacts[].user_id` and `contacts[].profile.username`.
+>
+> Read the sender as `from ?? from_user_id`, and pass that same value back as
+> `clientWaNumber` to reply. Delivery and read webhooks follow the same rule:
+> `recipient_id` may be absent, and `recipient_user_id` is always there.
+
 **Incoming Message Types:**
 
 | Type          | Description                 | Data Structure                                                |
