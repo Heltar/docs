@@ -66,6 +66,7 @@ Open the page, click the bubble, send a message. It should appear in your Heltar
 | `mode`                    | `string`            | `light`      | Colour scheme — `light`, `dark`, or `system` (follows the visitor's OS). Switchable live, see below                                                                                                                                            |
 | `autoShowDelay`           | `number` ms         | —            | Auto-open the panel N ms after page-load                                                                                                                                                                                                       |
 | `dynamicPrompt`           | `string`            | —            | Per-visitor context appended to your chatbot's system prompt on every AI reply (e.g. "Visitor is on the pricing page, premium tier"). Set it from your app; it's framed as background info, not as instructions that override the bot's rules. |
+| `enableCall`              | `boolean`           | `false`      | Voice-call button in the chat header — see "Voice calls" below                                                                                                                                                                                 |
 | `visitor.id`              | `string`            | —            | Identify the visitor from your own auth (phone, user id) — see "Identified visitors" below                                                                                                                                                     |
 | `visitor.name`            | `string`            | —            | Display name shown to agents in the inbox                                                                                                                                                                                                      |
 | `theme.primaryColor`      | `string`            | `#008069`    | Brand colour (bubble, header, send + reply buttons)                                                                                                                                                                                            |
@@ -213,6 +214,48 @@ It fires once, and only when the visitor has **no prior conversation**, so it
 never interrupts an ongoing chat or repeats on reload. This is the web chat
 widget only — WhatsApp threads are unaffected (there the customer must message
 first).
+
+## Voice calls (optional)
+
+Let visitors **call you** straight from the page — a call button appears in
+the widget header, and one tap starts a live voice call in the browser (the
+visitor's browser will ask for microphone access). Who answers works exactly
+like an incoming WhatsApp call: if you have a published **AI voice bot** it
+picks up; otherwise the call **rings your inbox** and any agent can answer
+from the dashboard.
+
+Every call is also listed in the conversation itself, the way WhatsApp lists calls in a chat: a call entry that reads _Ongoing_ while the call is live, then the duration once it was answered, or _No answer_ if nobody picked up.
+
+`enableCall` is a widget option like any other — set it in your config:
+
+```html
+<script>
+  HeltarChat.initBubble({
+    businessId: 123,
+    apiHost: 'https://app.heltar.com',
+    enableCall: true, // ← voice-call button in the chat header
+  });
+</script>
+```
+
+Two things to know:
+
+- **No answer.** Without a published voice bot (chatbot editor → publish as
+  voice bot), if nobody picks up within a minute the visitor is told no one is
+  available and the missed call shows in the inbox thread, like a missed
+  WhatsApp call.
+- Because it's your config, **your site decides who sees it**: enable it only
+  on certain pages, or only for logged-in / premium visitors — just set
+  `enableCall` conditionally when you call `initBubble`.
+
+During a call the chat stays usable: anything the visitor types is passed to
+the voice bot as extra context for the live conversation, exactly like texting
+during a WhatsApp call. The call, its recording and transcript land in the
+same inbox thread as the visitor's chat.
+
+The voice engine ships as a separate file (`web-widget-call.js`) that loads
+only when a visitor actually starts a call — pages that never call (or never
+enable it) never pay its download cost.
 
 ## Trigger the chat from your site (not just the icon)
 
@@ -374,10 +417,15 @@ By default the widget loads from your Heltar dashboard at `/web-widget.js`. To s
 
 ```bash
 git clone https://github.com/Heltar/web-widget.git
-cd web-widget && npm install && npm run build   # → dist/web.js
+cd web-widget && npm install && npm run build   # → dist/web.js + dist/call.js
 ```
 
-Host `dist/web.js` on your own CDN and point your `<script src>` at it. Self-hosting only changes where the _script_ is served from — `apiHost` must still point at the Heltar API, and the page's origin must still be allowlisted under **Settings → Web Chat Widget**.
+Host `dist/web.js` on your own CDN and point your `<script src>` at it. If you
+use **Voice calls**, also host `dist/call.js` beside it (`call.js` next to
+`web.js`; `web-widget-call.js` next to `web-widget.js` or any other filename).
+Self-hosting only changes where the _script_ is
+served from — `apiHost` must still point at the Heltar API, and the page's
+origin must still be allowlisted under **Settings → Web Chat Widget**.
 
 ---
 
