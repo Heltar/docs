@@ -110,6 +110,11 @@ print(response.json())
 [Code Editor](/docs/api/code-editor) - Execute custom functions from the code editor
 [Schedule](/docs/api/schedule) - Schedule messages, campaigns, and nudges
 [Chatbot](/docs/api/chatbot) - Activate, trigger, and test chatbot conversations
+[Business](/docs/api/business) - Account status, opt-in/opt-out rules, and account-level settings
+[Business Username](/docs/api/business-username) - Claim and manage your WhatsApp business username
+[Analytics](/docs/api/analytics) - Engagement, conversation, template, and cost analytics
+[Link Tracker](/docs/api/link-tracker) - Create short, trackable links for your messages
+[Team](/docs/api/team) - Manage team members, roles, business access, and chat assignment
 :::
 
 ---
@@ -122,7 +127,6 @@ All API responses follow a consistent format.
 
 ```json
 {
-  "code": "OK",
   "message": "Success",
   "data": {
     // Response data here
@@ -130,14 +134,20 @@ All API responses follow a consistent format.
 }
 ```
 
+The HTTP status code carries the outcome (`200`, or `202` for requests that are accepted and completed asynchronously). `message` is a human-readable summary and `data` holds the payload; some endpoints add sibling fields such as `paging`.
+
 ### Error Response
 
 ```json
 {
-  "code": "BAD_REQUEST",
-  "errorMessage": "Validation failed: clientWaNumber is required"
+  "errorType": "BadRequest",
+  "errorMessage": "clientWaNumber is required",
+  "errorsValidation": null,
+  "errorRaw": null
 }
 ```
+
+`errorType` is one of `BadRequest`, `Unauthorized`, `Forbidden`, `NotFound` or `InternalServerError` and always matches the HTTP status code. `errorMessage` explains what went wrong. For server errors the message is a generic `Internal Server Error`.
 
 ---
 

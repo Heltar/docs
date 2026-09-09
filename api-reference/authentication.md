@@ -81,9 +81,26 @@ A scope is written as `resource:action`, where `action` is `read` or `write`. A 
 | `clients:read`   | Read contacts only                           |
 | `clients:*`      | Read **and** write contacts                  |
 
-When you create a key you can pick a **preset** — **Full access** or **Read-only** — or select exactly the resources and actions you need (`messages`, `templates`, `campaigns`, `contacts`, `chatbots`, `groups`, `calls`, `schedule`, `code-editor`).
+When you create a key you can pick a **preset** — **Full access** or **Read-only** — or select exactly the resources and actions you need. The resource name is the first path segment after `/v1`:
+
+| Resource    | Shown in the app as | Endpoints                                               |
+| ----------- | ------------------- | ------------------------------------------------------- |
+| `messages`  | Messages            | [Messages](/docs/api/messages)                          |
+| `clients`   | Contacts            | [Contacts](/docs/api/contacts)                          |
+| `templates` | Templates           | [Templates](/docs/api/templates)                        |
+| `campaigns` | Campaigns           | [Campaigns](/docs/api/campaigns)                        |
+| `chatbots`  | Chatbots            | [Chatbot](/docs/api/chatbot)                            |
+| `groups`    | Groups              | [Groups](/docs/api/groups)                              |
+| `calls`     | Calls               | [Calls](/docs/api/calls)                                |
+| `schedule`  | Schedule            | [Schedule](/docs/api/schedule)                          |
+| `org`       | AI Studio           | [Code Editor](/docs/api/code-editor)                    |
+| `embed`     | Embed               | [Embedded agent chat](/docs/integrations/embedded-chat) |
+| `journeys`  | Journeys            | [Journey events](/docs/api/business#journey-events)     |
 
 A call that the key isn't scoped for returns **403 Forbidden**.
+
+> [!NOTE]
+> Account-level endpoints that are not in the table — `/v1/business/*` (account status, opt-in/opt-out rules, profile, settings), `/v1/auth/business-employees/*` and `/v1/role-permission` (team), `/v1/analytics/*`, `/v1/link-tracker/*`, `/v1/voice-calls/*`, `/v1/sip/*` and `/v1/wallet/*` — are not part of the per-resource picker. Call them with a key created with the **Full access** preset (or **Read-only** for GET requests).
 
 > [!NOTE]
 > Some dashboard-only areas (such as **webhooks** and **flows**) can never be reached with an API key — even a full-access (`*`) one. Configure those in the app.

@@ -218,7 +218,7 @@ At least one of `subject`, `description`, or `file` is required.
 
 - subject: string - New group subject (1-128 chars)
 - description: string - New group description (max 2048 chars)
-- file: binary [multipart only] - JPEG image for the group profile picture. Per Meta's requirements: `image/jpeg` only, max 5MB, square (height = width), minimum 192×192. Send as `multipart/form-data` with field name `file` (the API forwards it to Meta as `profile_picture_file`, which is the field name Meta's parser actually accepts despite their curl example showing `file`).
+- file: file - JPEG image for the group profile picture, sent as `multipart/form-data` with field name `file`. Per Meta's requirements: `image/jpeg` only, max 5MB, square (height = width), minimum 192×192.
 
 ### JSON request (subject / description only)
 
