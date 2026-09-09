@@ -31,20 +31,12 @@ Go to **Settings** → **WhatsApp API Setup** to connect your WhatsApp Business 
 
 ### Signup Types
 
-There are two signup options:
-
-| Signup Type              | When to Use                                                                    |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| **Heltar Sign-Up**       | Default. Heltar is your BSP. Credit line is attached directly in the platform. |
-| **Route Mobile Sign-Up** | Route Mobile is your BSP. Credit line is attached by Route Mobile on request.  |
-
-> [!NOTE]
-> The signup flow is identical for both types. The only differences are: (1) you click **Route Mobile** instead of **Heltar Sign-Up** in Step 2a, and (2) for Route Mobile signups, you request Route Mobile to attach the credit line instead of doing it yourself in Step 2h.
+**Route Mobile Sign-Up** is the default and the one to use: Route Mobile is the BSP for every new number, and its credit line is attached from within the platform (Step 2h). The other tabs are for businesses onboarding through a different BSP; use one only if that BSP has told you to.
 
 ### 2a. Start Embedded Signup
 
 1. Open [Settings > WhatsApp API Setup](/settings/1)
-2. Click **Heltar Sign-Up** or **Route Mobile** (depending on your BSP)
+2. Click **Route Mobile Sign-Up**
 3. A Facebook popup will open - log in using your Facebook account, or choose the currently logged-in account
 
 ### 2b. Select Business Portfolio
@@ -93,17 +85,11 @@ There are two signup options:
 
 ### 2h. Attach Credit Line
 
-**For Heltar Sign-Up:**
-
 1. Go to **Billing and Payments** in the left sidebar
 2. Click **Attach Credit Line**
 3. Click the green **Attach Credit Line** button to confirm
 
-**For Route Mobile Sign-Up:**
-
-1. Contact your Route Mobile account manager and request them to attach the credit line to your WABA
-2. Route Mobile will share their credit line with your account on Meta's end
-3. Once attached, your account will be ready to send messages
+The Route Mobile credit line is shared with your WhatsApp Business Account on Meta's end straight away, and your account is ready to send messages. If a credit line is already attached, the page says so and nothing changes.
 
 ### Verify Setup
 
