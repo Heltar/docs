@@ -181,7 +181,17 @@ The HTTP status code carries the outcome (`200`, or `202` for requests that are 
 
 ## Rate Limits
 
-API requests are rate limited per business account. If you exceed the limit, you'll receive a `429` response.
+API requests are rate limited per business account. If you exceed the limit, you'll receive a `429` response with a `Retry-After` header (seconds).
+
+Limits that apply to API keys (dashboard sessions are not affected):
+
+| Endpoints                                                                                                                                            | Limit per business |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Analytics, campaign statistics and downloads, message search, link list                                                                              | 60 per 15 minutes  |
+| List reads: contacts, blocked contacts, message history, flow submissions, campaigns, voice call records, chatbot results, template category updates | 600 per 15 minutes |
+| API key management                                                                                                                                   | 20 per 15 minutes  |
+
+Sending messages and campaigns is not subject to these limits.
 
 **Best Practices:**
 

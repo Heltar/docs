@@ -217,7 +217,12 @@ curl -X POST "{{API_URL}}/v1/link-tracker/create-bulk" \
 method: GET
 endpoint: /v1/link-tracker
 title: List Links
-description: List every tracked link in your account, newest first.
+description: List the tracked links in your account, newest first, one page at a time.
+
+## Query Parameters
+
+- limit: number - Page size. Default `100`, maximum `500`
+- cursor: number - `nextCursor` from the previous page. Omit for the first page
 
 ## Response
 
@@ -244,19 +249,25 @@ description: List every tracked link in your account, newest first.
         "messageWamid": "wamid.HBgMOTE5ODc2NTQzMjEwFQIAERgSQzU...",
         "createdAt": "2026-09-08T14:02:10.000Z"
       }
-    ]
+    ],
+    "nextCursor": 98764
   }
 }
 ```
 
 :::
 
-The list has no filters or pagination and returns all links at once. It includes links created through this API and links generated automatically during template sends.
+Pages are ordered by creation, newest first. `nextCursor` is the id of the last link on the page; pass it back as `cursor` to fetch the next page, and stop when it is `null`. The list includes links created through this API and links generated automatically during template sends. API keys may call this endpoint 60 times per 15 minutes per business.
 
 ### List Links Example
 
 ```bash
-curl -X GET "{{API_URL}}/v1/link-tracker" \
+curl -X GET "{{API_URL}}/v1/link-tracker?limit=100" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```bash
+curl -X GET "{{API_URL}}/v1/link-tracker?limit=100&cursor=98764" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 

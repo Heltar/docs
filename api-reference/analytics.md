@@ -63,7 +63,7 @@ description: Active contacts, new contacts and message volume for every day in a
 ## Query Parameters
 
 - startDate: string [required] - First day of the range, `YYYY-MM-DD`
-- endDate: string [required] - Last day of the range (inclusive), `YYYY-MM-DD`
+- endDate: string [required] - Last day of the range (inclusive), `YYYY-MM-DD`. At most 366 days after `startDate`
 
 ## Response
 
@@ -225,7 +225,7 @@ The counts form a funnel, so each step includes everything further down it:
 There is no maximum range; a multi-month range works, it just takes longer.
 
 > [!NOTE]
-> If this endpoint returns `503`, the analytics store is temporarily unavailable (or not enabled on a self-hosted deployment). `GET /v1/templates/template-analytics-by-day` takes the same two query parameters and returns the same rows computed from the primary message store. Two small differences: its `date` is a full timestamp (`"2026-08-03T00:00:00.000Z"`), and its `failedCount` does not include expired messages. It is slower on large accounts, so use it only as a fallback.
+> If this endpoint returns `503`, the analytics store is temporarily unavailable (or not enabled on a self-hosted deployment). Retry after a few seconds.
 
 ### Template Analytics by Day Example
 
@@ -771,4 +771,5 @@ curl -X GET "{{API_URL}}/v1/templates/cost-analytics/templates?startDate=2026-08
 | 401    | Missing, invalid, expired or revoked API key                                                                                                                                                                                                          |
 | 403    | The API key does not cover this endpoint (`templates:read` for `/v1/templates/*`, a Full access or Read-only key for `/v1/analytics/*`), or org-wide scope was requested without access to every business in the organisation                         |
 | 404    | Pricing or cost analytics requested on an account without cost visibility enabled                                                                                                                                                                     |
-| 503    | The analytics store is temporarily unavailable. Retry after a few seconds, or use the fallback noted under **Template Analytics by Day**                                                                                                              |
+| 429    | Rate limit reached: API keys may call the analytics endpoints 60 times per 15 minutes per business. Wait for the `Retry-After` header before retrying                                                                                                 |
+| 503    | The analytics store is temporarily unavailable. Retry after a few seconds                                                                                                                                                                             |
