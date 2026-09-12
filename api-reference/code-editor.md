@@ -79,7 +79,7 @@ When the same function is invoked from a chatbot conversation (i.e. the bot call
 - **Versions** are immutable snapshots of the draft, numbered `1`, `2`, `3`, ... Create one with `POST /v1/org/code/versions`.
 - **Deployment** is the version that production points at. `POST /v1/org/code/deploy` selects it and `POST /v1/org/code/run` executes it.
 
-Your code runs on a managed Python runtime. The entry point is `all_events_handler(event, context)` in `all_events_entry_point.py` at the root of your workspace. Each invocation may run for up to 5 minutes with 256 MB of memory.
+Your code runs on a managed Python runtime. The entry point is `all_events_handler(event, context)` in `all_events_entry_point.py` at the root of your workspace. Each invocation may run for up to 5 minutes with 1 GB of memory and 2 GB of temporary disk space.
 
 > [!IMPORTANT]
 > While someone has the Code Editor open in the dashboard, write calls that change the workspace (**save**, **create version**, **delete version**) return **403 Forbidden** with a message naming that person. Ask them to close the editor, or wait for their session to go idle, and retry. Test, deploy, and run are never blocked.
