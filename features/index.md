@@ -29,24 +29,24 @@ Complete WhatsApp Business communication platform.
 [WhatsApp Coexistence](/docs/features/coexistence) - Phone app and API on the same number
 [Meta AI](/docs/features/meta-ai) - Meta's AI agent answering your customers
 [Settings](/docs/features/settings) - Configure your workspace
-[RCS Messaging](/docs/features/rcs) - Send and receive RCS over Route Mobile + Jio
+[RCS Messaging](/docs/features/rcs) - Send and receive RCS over Route Mobile + Jio or Google RCS
 :::
 
 ## Quick Overview
 
-| Feature            | Description                                            |
-| ------------------ | ------------------------------------------------------ |
-| **Inbox**          | Real-time messaging, team collaboration, private notes |
-| **Contacts**       | Import, tag, segment, and manage customers             |
-| **Calls**          | WhatsApp voice/video calls with history                |
-| **Bulk Messaging** | Template-based campaigns with scheduling               |
-| **Templates**      | Create headers, buttons, carousels, flows              |
-| **AI Agent**       | Visual flow builder, auto-replies, AI integration      |
-| **Code Editor**    | Custom serverless Python functions                     |
-| **Integrations**   | Shopify, CleverTap, WebEngage, OpenAI, etc.            |
-| **Coexistence**    | WhatsApp Business app + API together on one number     |
-| **Meta AI**        | Meta-run AI agent with eligibility, evals, handoff     |
-| **RCS Messaging**  | Rich Communication Services over Route Mobile + Jio    |
+| Feature            | Description                                             |
+| ------------------ | ------------------------------------------------------- |
+| **Inbox**          | Real-time messaging, team collaboration, private notes  |
+| **Contacts**       | Import, tag, segment, and manage customers              |
+| **Calls**          | WhatsApp voice/video calls with history                 |
+| **Bulk Messaging** | Template-based campaigns with scheduling                |
+| **Templates**      | Create headers, buttons, carousels, flows               |
+| **AI Agent**       | Visual flow builder, auto-replies, AI integration       |
+| **Code Editor**    | Custom serverless Python functions                      |
+| **Integrations**   | Shopify, CleverTap, WebEngage, OpenAI, etc.             |
+| **Coexistence**    | WhatsApp Business app + API together on one number      |
+| **Meta AI**        | Meta-run AI agent with eligibility, evals, handoff      |
+| **RCS Messaging**  | Rich Communication Services over Route Mobile or Google |
 
 ## Platform Capabilities
 
