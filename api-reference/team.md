@@ -306,14 +306,14 @@ Other behaviour worth knowing:
 
 #### Invite Errors
 
-| Status | Message                                                                                               | When                                                                                                                        |
-| ------ | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 400    | Validation message from the schema                                                                    | A required field is missing, `contact` is not a valid phone number, or an unknown key was sent.                             |
-| 400    | `agent@example.com already exists!`                                                                   | The email is already an active member of your organisation.                                                                 |
-| 400    | `The account for agent@example.com has been deleted. An OWNER can restore it from the employee list.` | The email belongs to a removed member. Use [Restore a Removed Member](#restore-a-removed-member) instead of inviting again. |
-| 400    | `You can only grant access to businesses you can access.`                                             | A non-`OWNER` caller picked businesses they cannot open themselves, leaving the invitee with none.                          |
-| 404    | `This role name SUPPORT not found!`                                                                   | `role` does not match a role in your organisation.                                                                          |
-| 403    | `You do not have permission to access employee management feature. ...`                               | The signed-in caller's role lacks `employeeManagement`.                                                                     |
+| Status | Message                                                                                                                                                                                      | When                                                                                                                        |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 400    | Validation message from the schema                                                                                                                                                           | A required field is missing, `contact` is not a valid phone number, or an unknown key was sent.                             |
+| 400    | `agent@example.com already exists!`                                                                                                                                                          | The email is already an active member of your organisation.                                                                 |
+| 400    | `The account for agent@example.com was deleted. Restore it instead of inviting again: open Settings → Employees, find the row marked "Deleted", and press Restore (needs OWNER permission).` | The email belongs to a removed member. Use [Restore a Removed Member](#restore-a-removed-member) instead of inviting again. |
+| 400    | `You can only grant access to businesses you can access.`                                                                                                                                    | A non-`OWNER` caller picked businesses they cannot open themselves, leaving the invitee with none.                          |
+| 404    | `This role name SUPPORT not found!`                                                                                                                                                          | `role` does not match a role in your organisation.                                                                          |
+| 403    | `You do not have permission to access employee management feature. ...`                                                                                                                      | The signed-in caller's role lacks `employeeManagement`.                                                                     |
 
 ---
 
@@ -488,12 +488,13 @@ curl -X PUT "{{API_URL}}/v1/auth/business-employees/agent%40example.com" \
 
 `data` is the member record with the updated role as a full role object (shortened above; the same shape as [Get Roles](#get-roles)). The new role takes effect on the member's next request. A change to your own role is picked up by the dashboard on its next token refresh.
 
-| Status | Message                                                                                                                               | When                                                                                |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 400    | `Employee with email agent@example.com does not exist.`                                                                               | The email is not a member of your organisation.                                     |
-| 400    | `The account with the email priya@example.com cannot have its role changed because it is the sole account assigned the 'OWNER' role.` | You tried to demote the only active `OWNER`. Promote someone else to `OWNER` first. |
-| 404    | `This role name SUPPORT not found!`                                                                                                   | `role` does not match a role in your organisation.                                  |
-| 403    | `You do not have permission to access employee management feature. ...`                                                               | The signed-in caller's role lacks `employeeManagement`.                             |
+| Status | Message                                                                                                                                                                                      | When                                                                                                    |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 400    | `Employee with email agent@example.com does not exist.`                                                                                                                                      | The email is not a member of your organisation.                                                         |
+| 400    | `The account for agent@example.com was deleted. Restore it instead of inviting again: open Settings → Employees, find the row marked "Deleted", and press Restore (needs OWNER permission).` | The email belongs to a removed member. An `OWNER` must [restore](#restore-a-removed-member) them first. |
+| 400    | `The account with the email priya@example.com cannot have its role changed because it is the sole account assigned the 'OWNER' role.`                                                        | You tried to demote the only active `OWNER`. Promote someone else to `OWNER` first.                     |
+| 404    | `This role name SUPPORT not found!`                                                                                                                                                          | `role` does not match a role in your organisation.                                                      |
+| 403    | `You do not have permission to access employee management feature. ...`                                                                                                                      | The signed-in caller's role lacks `employeeManagement`.                                                 |
 
 ---
 
@@ -548,11 +549,12 @@ What happens depends on the member's status:
 
 `data` is the member record as it was before removal. `rolePermission` in this response is the full role object (shortened above).
 
-| Status | Message                                                                                                | When                                                    |
-| ------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| 400    | `Employee with email agent@example.com does not exist.`                                                | The email is not a member of your organisation.         |
-| 400    | `The account for priya@example.com cannot be deleted as it is the only account with the 'OWNER' role.` | You tried to remove the only active `OWNER`.            |
-| 403    | `You do not have permission to access employee management feature. ...`                                | The signed-in caller's role lacks `employeeManagement`. |
+| Status | Message                                                                                                                                                                                      | When                                                                                                    |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 400    | `Employee with email agent@example.com does not exist.`                                                                                                                                      | The email is not a member of your organisation.                                                         |
+| 400    | `The account for agent@example.com was deleted. Restore it instead of inviting again: open Settings → Employees, find the row marked "Deleted", and press Restore (needs OWNER permission).` | The email belongs to a removed member. An `OWNER` must [restore](#restore-a-removed-member) them first. |
+| 400    | `The account for priya@example.com cannot be deleted as it is the only account with the 'OWNER' role.`                                                                                       | You tried to remove the only active `OWNER`.                                                            |
+| 403    | `You do not have permission to access employee management feature. ...`                                                                                                                      | The signed-in caller's role lacks `employeeManagement`.                                                 |
 
 ---
 
@@ -640,11 +642,12 @@ curl -X POST "{{API_URL}}/v1/auth/business-employees/agent%40example.com/resend-
 
 If the original link is still valid it is sent again unchanged, keeping its original 7-day expiry. If it has expired, a fresh link valid for 7 days is issued and the old one stays dead. As with the invite endpoint, `inviteLink` is always returned and `emailSent` tells you whether the email went out.
 
-| Status | Message                                                                 | When                                                        |
-| ------ | ----------------------------------------------------------------------- | ----------------------------------------------------------- |
-| 400    | `Employee with email agent@example.com does not exist.`                 | The email is not a member of your organisation.             |
-| 400    | `agent@example.com has already activated their account.`                | The member is already `active`; there is nothing to resend. |
-| 403    | `You do not have permission to access employee management feature. ...` | The signed-in caller's role lacks `employeeManagement`.     |
+| Status | Message                                                                                                                                                                                      | When                                                                                                    |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 400    | `Employee with email agent@example.com does not exist.`                                                                                                                                      | The email is not a member of your organisation.                                                         |
+| 400    | `The account for agent@example.com was deleted. Restore it instead of inviting again: open Settings → Employees, find the row marked "Deleted", and press Restore (needs OWNER permission).` | The email belongs to a removed member. An `OWNER` must [restore](#restore-a-removed-member) them first. |
+| 400    | `agent@example.com has already activated their account.`                                                                                                                                     | The member is already `active`; there is nothing to resend.                                             |
+| 403    | `You do not have permission to access employee management feature. ...`                                                                                                                      | The signed-in caller's role lacks `employeeManagement`.                                                 |
 
 ---
 
