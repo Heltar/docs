@@ -107,7 +107,6 @@ print(response.json())
 [Calls](/docs/api/calls) - Place WhatsApp / SIP / AI-agent outbound voice calls
 [Webhooks](/docs/api/webhooks) - Receive real-time event notifications
 [Authentication](/docs/api/authentication) - API key setup and usage
-[Code Editor](/docs/api/code-editor) - Execute custom functions from the code editor
 [Schedule](/docs/api/schedule) - Schedule messages, campaigns, and nudges
 [Chatbot](/docs/api/chatbot) - Activate, trigger, and test chatbot conversations
 [Business](/docs/api/business) - Account status, opt-in/opt-out rules, and account-level settings

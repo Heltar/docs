@@ -99,11 +99,11 @@ Every chatbot endpoint that returns a bot returns the same object. Fields marked
 | ---------------- | ---------------------------------------------------------------------------------------- |
 | `llm`            | Prompt-driven AI bot. Needs `systemPrompt`. Only `llm` bots can be used as the voice bot |
 | `flow`           | Visual flow built in the flow builder. Needs `flowDefinition`                            |
-| `static_flowbot` | Code-backed flow bot, authored in the code editor                                        |
-| `journey`        | Event-driven journey, authored in the code editor                                        |
+| `static_flowbot` | Code-backed flow bot, authored in AI Studio                                              |
+| `journey`        | Event-driven journey, authored in AI Studio                                              |
 | `meta_ai`        | Meta AI business agent that runs on Meta's side; configured from the dashboard           |
 
-Use this API to create and configure `llm` and `flow` bots. The other types are managed from the code editor or the dashboard.
+Use this API to create and configure `llm` and `flow` bots. The other types are managed from AI Studio or the dashboard.
 
 ### `audioTranscriptionConfig`
 
@@ -157,7 +157,7 @@ Each section is merged on update, so you can send only the keys you want to chan
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `api_call`                        | `apiUrl` (required URL), `method` (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`; default `POST`), `headers` (object) | The bot calls your endpoint with the arguments. `{variable}` placeholders in `apiUrl` are added to `heltarParameters` automatically |
 | `lambda_function`                 | none (uses `sourceCode`, `codeLanguage`, `env`)                                                                 | Runs `sourceCode` in the hosted code runtime                                                                                        |
-| `unified_function_event_handlers` | none                                                                                                            | Runs the function of the same `name` from your code editor deployment                                                               |
+| `unified_function_event_handlers` | none                                                                                                            | Runs the function of the same `name` from your AI Studio deployment                                                                 |
 
 ---
 
@@ -1517,7 +1517,7 @@ What runs depends on the function's `executionDetails.type`:
 
 | Type                              | Behaviour                                                                                                                                        |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `unified_function_event_handlers` | Your code editor deployment is called with `parameters`, `function_name` and your business context; `data` is the function's return value        |
+| `unified_function_event_handlers` | Your AI Studio deployment is called with `parameters`, `function_name` and your business context; `data` is the function's return value          |
 | `lambda_function`                 | The stored `sourceCode` runs in the hosted runtime with the stored `env`; `data` is the runtime result (`success`, `statusCode`, and the output) |
 | `api_call`                        | Not supported by this endpoint (the bot still calls such functions during conversations)                                                         |
 

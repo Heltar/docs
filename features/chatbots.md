@@ -48,10 +48,10 @@ Each card shows:
 - **Created Date** (formatted as "Jan 15, 2024")
 - **Function Count** (e.g., "3 functions")
 - **Timeout Status** (if enabled)
-- **Copilot Badge** (for chatbots created via Code Editor):
+- **Copilot Badge** (for chatbots created via AI Studio):
   - "Sync with code version" text with CPU icon
   - Version badge (e.g., "v21")
-  - Warning icon - indicates editing should be done via Code Editor
+  - Warning icon - indicates editing should be done via AI Studio
 
 ### Chatbot Card Menu (Three Dots)
 
@@ -155,7 +155,7 @@ When a tool is called and waiting for response:
 - **Direct Return** badge (blue) — function result is sent directly to user without a follow-up LLM call
 - **X** button to remove a function
 - **+** dropdown to add functions:
-  - **Create new function** - Opens Code Editor
+  - **Create new function** - Opens AI Studio
   - **Use existing function** - Browse organization library
 
 #### Organization Functions Library
@@ -180,13 +180,13 @@ When creating or editing a function, the dialog shows:
 - **Function Definition (JSON)** — OpenAI-format JSON with name, description, and parameters
 - **Direct Return** toggle — When enabled, the function result is returned directly to the user without a follow-up LLM call. Useful for pre-formatted responses (carousels, lists, media)
 - **Execution Type** tabs:
-  - **Unified Event Handlers** (recommended) — Routed through `all_events_handler` in Code Editor
+  - **Unified Event Handlers** (recommended) — Runs the function of the same name from your AI Studio deployment
   - **API Call** (deprecated) — Direct HTTP call
   - **Python** (deprecated) — Inline Python code
   - **No Execution** — Schema only, no auto-execution
 
 > [!INFO]
-> The `directReturn` flag is preserved when syncing between the AI Agent page and Code Editor. In Code Editor format, it appears in the `functions` array as `{ "name": "...", "directReturn": true }`.
+> The `directReturn` flag is preserved when syncing between the AI Agent page and AI Studio.
 
 #### System Message Section
 
@@ -446,42 +446,9 @@ Manage API keys for OpenAI:
 
 ---
 
-## Function Linking Format (Code Editor)
-
-When linking functions to a chatbot via the Code Editor, the `functions` array in the chatbot JSON uses objects:
-
-```json
-"functions": [
-  { "name": "get_order_status", "directReturn": false },
-  { "name": "search_products", "directReturn": false },
-  { "name": "send_carousel", "directReturn": true }
-]
-```
-
-| Field          | Required | Default | Description                                                                  |
-| -------------- | -------- | ------- | ---------------------------------------------------------------------------- |
-| `name`         | Yes      | —       | Function name (must match a file in `function_definitions/` folder)          |
-| `directReturn` | No       | `false` | If `true`, function result is returned directly without a follow-up LLM call |
-
-### When to use `directReturn: true`
-
-- Sending pre-formatted messages (carousels, lists, media)
-- Returning raw data that doesn't need AI interpretation
-- Functions that handle their own response formatting
-
-### Backward Compatibility
-
-Plain string names still work and are treated as `{ "name": "...", "directReturn": false }`:
-
-```json
-"functions": ["get_order_status", "search_products"]
-```
-
----
-
 ## Copilot-Created Chatbots
 
-Chatbots can also be created via the **Code Editor** (Copilot). These chatbots have special behavior:
+Chatbots can also be created via **AI Studio** (Copilot). These chatbots have special behavior:
 
 ### Identifying Copilot Chatbots
 
@@ -491,26 +458,26 @@ Chatbots can also be created via the **Code Editor** (Copilot). These chatbots h
 ### Editing Copilot Chatbots
 
 > [!WARNING]
-> Changes made on the AI Agent page to Copilot chatbots will be **overwritten** on the next deploy from Code Editor.
+> Changes made on the AI Agent page to Copilot chatbots will be **overwritten** on the next deploy from AI Studio.
 
 To properly edit a Copilot chatbot:
 
-1. Go to **Code Editor**
-2. Edit the chatbot JSON file in `chatbot/` folder
+1. Go to **AI Studio**
+2. Ask Copilot to make the change
 3. Click **Create Version**
 4. Click **Deploy** and select the new version
 
 The chatbot will be updated with the new configuration and version number.
 
-### When to Use Code Editor vs AI Agent
+### When to Use AI Studio vs AI Agent
 
-| Task                                 | Use         |
-| ------------------------------------ | ----------- |
-| Create chatbot with custom functions | Code Editor |
-| Quick test in Playground             | AI Agent    |
-| Create chatbot without coding        | AI Agent    |
-| Manage functions in Python           | Code Editor |
-| Publish/Unpublish bot                | AI Agent    |
+| Task                                 | Use       |
+| ------------------------------------ | --------- |
+| Create chatbot with custom functions | AI Studio |
+| Quick test in Playground             | AI Agent  |
+| Create chatbot without coding        | AI Agent  |
+| Manage functions in Python           | AI Studio |
+| Publish/Unpublish bot                | AI Agent  |
 
 ---
 

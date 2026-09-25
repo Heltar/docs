@@ -20,7 +20,7 @@ A complete solution for businesses to communicate via WhatsApp:
 | **Bulk Messaging** | Send campaigns to multiple contacts at once          |
 | **Templates**      | Create and manage approved message templates         |
 | **AI Agent**       | Build AI chatbots that handle conversations          |
-| **Code Editor**    | Create custom functions for your chatbots            |
+| **AI Studio**      | Describe a bot and Copilot builds and deploys it     |
 | **Calls**          | Handle WhatsApp voice calls                          |
 | **Integrations**   | Connect with Shopify, CleverTap, WebEngage, and more |
 | **Analytics**      | Track delivery, engagement, and performance          |
@@ -57,9 +57,9 @@ Send template messages to multiple contacts. Upload CSV, select template, map va
 
 Create AI chatbots with custom system prompts and functions. Test in playground before publishing.
 
-### Code Editor
+### AI Studio
 
-Write Python handlers for chatbot functions. Create JSON configurations for chatbots and tool definitions.
+Describe what your bot should do and Copilot builds, tests and deploys it for you.
 
 ### Calls
 
@@ -78,7 +78,7 @@ The app has a left sidebar with these main sections:
 | Calls          | Phone    | Voice call history     |
 | Bulk Messaging | Send     | Campaigns              |
 | AI Agent       | Bot      | Chatbots               |
-| Code Editor    | Code     | Custom functions       |
+| AI Studio      | Sparkles | Copilot bot builder    |
 | Integrations   | Puzzle   | Third-party apps       |
 | Settings       | Settings | Configuration          |
 

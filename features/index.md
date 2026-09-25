@@ -21,7 +21,6 @@ Complete WhatsApp Business communication platform.
 :::cards
 [Templates](/docs/features/templates) - Create message templates
 [AI Agent](/docs/features/chatbots) - Build automated chatbots
-[Code Editor](/docs/features/code-editor) - Custom Python functions
 [Integrations](/docs/features/integrations) - Connect third-party apps
 :::
 
@@ -42,7 +41,7 @@ Complete WhatsApp Business communication platform.
 | **Bulk Messaging** | Template-based campaigns with scheduling                |
 | **Templates**      | Create headers, buttons, carousels, flows               |
 | **AI Agent**       | Visual flow builder, auto-replies, AI integration       |
-| **Code Editor**    | Custom serverless Python functions                      |
+| **AI Studio**      | Copilot builds and deploys bots from a description      |
 | **Integrations**   | Shopify, CleverTap, WebEngage, OpenAI, etc.             |
 | **Coexistence**    | WhatsApp Business app + API together on one number      |
 | **Meta AI**        | Meta-run AI agent with eligibility, evals, handoff      |

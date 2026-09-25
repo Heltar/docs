@@ -93,7 +93,7 @@ When you create a key you can pick a **preset** — **Full access** or **Read-on
 | `groups`    | Groups              | [Groups](/docs/api/groups)                              |
 | `calls`     | Calls               | [Calls](/docs/api/calls)                                |
 | `schedule`  | Schedule            | [Schedule](/docs/api/schedule)                          |
-| `org`       | AI Studio           | [Code Editor](/docs/api/code-editor)                    |
+| `org`       | AI Studio           | Used by the AI Studio dashboard                         |
 | `embed`     | Embed               | [Embedded agent chat](/docs/integrations/embedded-chat) |
 | `journeys`  | Journeys            | [Journey events](/docs/api/business#journey-events)     |
 

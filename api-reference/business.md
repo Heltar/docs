@@ -1244,7 +1244,7 @@ Calling it when already subscribed is harmless. You can confirm the subscription
 
 ## Journey Events
 
-Journeys are event-driven automations: your backend posts business events such as `added_to_cart` or `checkout_complete`, and every journey that listens for that event runs its next step for that person (for example, sends a reminder template two hours later if they did not check out). Journeys are built in the code editor and declare the event names they listen to (their trigger events). See [Code Editor](/docs/api/code-editor).
+Journeys are event-driven automations: your backend posts business events such as `added_to_cart` or `checkout_complete`, and every journey that listens for that event runs its next step for that person (for example, sends a reminder template two hours later if they did not check out). Journeys are built in AI Studio and declare the event names they listen to (their trigger events).
 
 > [!NOTE]
 > This endpoint is covered by the `journeys` resource in the scope picker: the API key needs `journeys:write` (or the **Full access** preset).
