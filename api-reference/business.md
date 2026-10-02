@@ -183,15 +183,15 @@ Every name you pass in `fields` is fetched from Meta and returned under the same
 
 **WhatsApp Business Account fields**
 
-| Field                                | Type   | What it tells you                                                                                                                              |
-| ------------------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `business_verification_status`       | string | Meta business verification state, e.g. `verified`, `not_verified`, `pending_submission`, `pending_need_more_info`, `rejected`.                 |
-| `marketing_messages_lite_api_status` | string | Whether the account is onboarded to Marketing Messages Lite, e.g. `ONBOARDED`, `ELIGIBLE`, `INELIGIBLE`.                                       |
-| `subscribed_apps`                    | array  | Apps subscribed to receive webhooks for this account. Each entry contains `whatsapp_business_api_data` with the app `id`, `name` and `link`.   |
-| `phone_numbers`                      | array  | Every phone number on the account with its own `id`, `display_phone_number`, `verified_name`, `quality_rating` and `code_verification_status`. |
-| `solutions`                          | array  | Multi-partner solutions the account is part of, if any.                                                                                        |
-| `payment_configurations`             | array  | Payment configurations set up on the account (WhatsApp Pay).                                                                                   |
-| `product_catalogs`                   | array  | Product catalogs connected to the account.                                                                                                     |
+| Field                                | Type   | What it tells you                                                                                                                                  |
+| ------------------------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `business_verification_status`       | string | Meta business verification state, e.g. `verified`, `not_verified`, `pending_submission`, `pending_need_more_info`, `rejected`.                     |
+| `marketing_messages_lite_api_status` | string | Whether the account is onboarded to Marketing Messages Lite, e.g. `ONBOARDED`, `ELIGIBLE`, `INELIGIBLE`.                                           |
+| `subscribed_apps`                    | array  | Apps subscribed to receive webhooks for this account. Each entry contains `whatsapp_business_api_data` with the app `id`, `name` and `link`.       |
+| `phone_numbers`                      | array  | Every phone number on the account with its own `id`, `display_phone_number`, `verified_name`, `quality_rating` and `code_verification_status`.     |
+| `solutions`                          | array  | Multi-partner solutions the account is part of, if any.                                                                                            |
+| `payment_configurations`             | array  | Payment configurations as Meta lists them. Meta's list can be incomplete; use [Payment Configurations](#payment-configurations) for the full list. |
+| `product_catalogs`                   | array  | Product catalogs connected to the account.                                                                                                         |
 
 The values above are Meta's own and are returned exactly as Meta reports them. Meta may add new values over time; treat unknown values as "check the dashboard" rather than failing hard.
 
@@ -953,6 +953,242 @@ curl -X PUT "{{API_URL}}/v1/business/data-localization-region" \
 ```
 
 Passing `null` returns `Data localization region cleared.` with `"dataLocalizationRegion": null`. Any code is accepted as long as it is two uppercase letters; Meta returns a `400 Failed to update data localization region on Meta.` if it does not support that region.
+
+---
+
+## Payment Configurations
+
+A payment configuration links how you get paid (a payment gateway account or a UPI ID) to your WhatsApp Business Account, under a name you choose. That name is what an [`order_details` message](/docs/api/messages#payment-messages) sends as `configuration_name` or `payment_configuration`. These endpoints create and manage configurations on Meta; nothing is stored on our side. The same steps are available in the dashboard under **Settings → WhatsApp Payments**.
+
+Payment configurations are an India feature. Field names are Meta's own.
+
+:::api
+method: GET
+endpoint: /v1/business/payment-configurations
+title: List Payment Configurations
+description: Every payment configuration on your WhatsApp Business Account, with its status.
+
+## Response
+
+```response
+{
+  "message": "Fetched payment configurations.",
+  "data": [
+    {
+      "configuration_name": "my-razorpay",
+      "provider_name": "RazorPay",
+      "provider_mid": "acc_Pg1a2b3c",
+      "status": "Active",
+      "merchant_category_code": { "code": "5411", "description": "Grocery stores" },
+      "purpose_code": { "code": "00", "description": "UPI purchase" },
+      "created_timestamp": 1720203204,
+      "updated_timestamp": 1721088316
+    }
+  ]
+}
+```
+
+:::
+
+### List Payment Configurations Example
+
+```bash
+curl -X GET "{{API_URL}}/v1/business/payment-configurations" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+| `status`           | What it means                                                        |
+| ------------------ | -------------------------------------------------------------------- |
+| `Active`           | Ready to take payments                                               |
+| `Needs_Connecting` | The payment gateway account is not linked yet. Create a connect link |
+| `Needs_Testing`    | The account is linked and Meta is waiting for it to be tested        |
+
+The list holds what Meta lists for the account plus every configuration you created or added through these endpoints; each one's details are read from Meta on every call. Meta's own list can leave a configuration out even though it exists, so if one you made in WhatsApp Manager is missing, add it by name with [Add Existing Payment Configuration](#add-existing-payment-configuration).
+
+A UPI configuration also carries `merchant_vpa`. `provider_name` comes back as Meta writes it (for example `RazorPay`); use it in lowercase as the `payment_gateway.type` of an `order_details` message.
+
+---
+
+:::api
+method: POST
+endpoint: /v1/business/payment-configurations
+title: Create Payment Configuration
+description: Add a payment gateway account or a UPI ID to your WhatsApp Business Account.
+
+## Body Parameters
+
+- configuration_name: string [required] - The name you will use in `order_details` messages. Up to 60 characters
+- provider_name: string [required] - `razorpay`, `payu`, `zaakpay`, or `upi_vpa` for a UPI ID
+- merchant_vpa: string - Your UPI ID, for example `business@bank`. Required when `provider_name` is `upi_vpa`
+- merchant_category_code: string - The 4-digit merchant category code (MCC) your payment gateway or bank registered you under, for example `5411` for grocery stores
+- purpose_code: string - The 2-digit UPI purpose code: `00` default, `01` SEBI, `02` AMC, `03` travel, `04` hospitality, `05` hospital, `06` telecom, `07` insurance, `08` education, `09` gifting, `10` others
+- redirect_url: string - Where to send the person back to after they link a payment gateway account
+
+```request
+{
+  "configuration_name": "my-razorpay",
+  "provider_name": "razorpay",
+  "redirect_url": "https://example.com/payments/connected"
+}
+```
+
+## Response
+
+```response
+{
+  "message": "Payment configuration created. Connect the payment gateway account to finish.",
+  "data": {
+    "configuration_name": "my-razorpay",
+    "oauth_url": "https://www.facebook.com/payment/onboarding/init/...",
+    "expiration": 1721687287
+  }
+}
+```
+
+:::
+
+### Create Payment Configuration Example
+
+```bash
+curl -X POST "{{API_URL}}/v1/business/payment-configurations" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "configuration_name": "my-razorpay", "provider_name": "razorpay", "redirect_url": "https://example.com/payments/connected" }'
+```
+
+A UPI ID needs `merchant_category_code` and `purpose_code` as well; your payment gateway sets them when it creates the UPI ID, so use the same values. The dashboard fills both from a business category you pick.
+
+For a payment gateway, open `oauth_url` in a browser before `expiration` (Unix seconds): the owner of the gateway account signs in and approves, and is then sent to `redirect_url`. Until that is done the configuration stays `Needs_Connecting`. A UPI ID has nothing to link, so `data` carries only the `configuration_name` and the message is `Payment configuration created.`:
+
+```bash
+curl -X POST "{{API_URL}}/v1/business/payment-configurations" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "configuration_name": "my-upi", "provider_name": "upi_vpa", "merchant_vpa": "business@bank", "merchant_category_code": "5411", "purpose_code": "00" }'
+```
+
+---
+
+:::api
+method: POST
+endpoint: /v1/business/payment-configurations/:name/link
+title: Create Connect Link
+description: Get a fresh link to connect the payment gateway account of a configuration, when the first one expired or was never used.
+
+## Path Parameters
+
+- name: string [required] - The `configuration_name`, URL-encoded
+
+## Body Parameters
+
+- redirect_url: string - Where to send the person back to after they link the account
+
+```request
+{
+  "redirect_url": "https://example.com/payments/connected"
+}
+```
+
+## Response
+
+```response
+{
+  "message": "Connect link created.",
+  "data": {
+    "oauth_url": "https://www.facebook.com/payment/onboarding/init/...",
+    "expiration": 1721687287
+  }
+}
+```
+
+:::
+
+### Create Connect Link Example
+
+```bash
+curl -X POST "{{API_URL}}/v1/business/payment-configurations/my-razorpay/link" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "redirect_url": "https://example.com/payments/connected" }'
+```
+
+---
+
+:::api
+method: PUT
+endpoint: /v1/business/payment-configurations/:name
+title: Add Existing Payment Configuration
+description: Add a configuration that already exists on your WhatsApp Business Account, for example one created in WhatsApp Manager, so it appears in the list.
+
+## Path Parameters
+
+- name: string [required] - The `configuration_name` exactly as it is set up, URL-encoded
+
+## Response
+
+```response
+{
+  "message": "Payment configuration added.",
+  "data": {
+    "configuration_name": "my-upi",
+    "status": "Active",
+    "merchant_vpa": "business@bank",
+    "merchant_category_code": { "code": "5411", "description": "Grocery stores" },
+    "purpose_code": { "code": "00", "description": "Default" },
+    "created_timestamp": 1720203204,
+    "updated_timestamp": 1721088316
+  }
+}
+```
+
+:::
+
+### Add Existing Payment Configuration Example
+
+```bash
+curl -X PUT "{{API_URL}}/v1/business/payment-configurations/my-upi" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+A name Meta does not know returns `400` with Meta's reason.
+
+---
+
+:::api
+method: DELETE
+endpoint: /v1/business/payment-configurations/:name
+title: Delete Payment Configuration
+description: Remove a payment configuration. Orders that name it can no longer be paid.
+
+## Path Parameters
+
+- name: string [required] - The `configuration_name`, URL-encoded
+
+## Response
+
+```response
+{
+  "message": "Payment configuration deleted."
+}
+```
+
+:::
+
+### Delete Payment Configuration Example
+
+```bash
+curl -X DELETE "{{API_URL}}/v1/business/payment-configurations/my-razorpay" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Payment Configuration Errors
+
+| Status code | Message                                                                                   | Why it happens                                                                  |
+| ----------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 400         | The reason Meta gave, for example `WhatsApp Payments Terms of Service acceptance pending` | Meta refused the request. The full Meta error is returned alongside the message |
+| 400         | `This is your sandbox. Add your own number as a new business.`                            | Payment configurations need your own WhatsApp number                            |
+| 403         | `Connect your WhatsApp number again to manage payment configurations.`                    | The number was connected before per-account access tokens; sign it up again     |
+| 403         | `API key does not have the required scope (business:write)`                               | The key can read but not change business settings                               |
 
 ---
 

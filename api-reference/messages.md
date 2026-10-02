@@ -551,8 +551,10 @@ Set `messageType` to `interactive` and describe the message in the `interactive`
 | `product`                  | A single product from your catalog                                  |
 | `product_list`             | Several products from your catalog, grouped into sections           |
 | `carousel`                 | 2 to 10 swipeable cards, each with an image or video and one action |
+| `order_details`            | An order with a **Review and pay** button (WhatsApp Payments)       |
+| `order_status`             | An update on an order you sent with `order_details`                 |
 
-Every type takes a `body.text`, most take an optional `footer.text`, and `button`, `cta_url`, `flow`, `address_message`, and `location_request_message` also accept an optional `header`: `{ "type": "text", "text": "..." }` or `{ "type": "image" | "video" | "document" | "audio" | "sticker", "<type>": { "link": "https://..." } }`. `list` and `product_list` accept a text header only.
+Every type takes a `body.text`, most take an optional `footer.text`, and `button`, `cta_url`, `flow`, `address_message`, and `location_request_message` also accept an optional `header`: `{ "type": "text", "text": "..." }` or `{ "type": "image" | "video" | "document" | "audio" | "sticker", "<type>": { "link": "https://..." } }`. `list` and `product_list` accept a text header only, and `order_details` an image header only.
 
 ---
 
@@ -858,6 +860,180 @@ Send 2 to 10 swipeable cards. Each card needs a `card_index` (0-9), `"type": "ct
   }
 }
 ```
+
+---
+
+### Payment Messages
+
+Collect a payment inside the chat with WhatsApp Payments, available to businesses in India, Singapore and Brazil. Send an `order_details` message; the contact taps **Review and pay** and pays from WhatsApp. In India and Singapore your WhatsApp Business account needs a payment configuration first. In India you can create, connect and list them with [Payment Configurations](/docs/api/business#payment-configurations), or in the dashboard under **Settings → WhatsApp Payments**.
+
+Payment messages go to a one-to-one WhatsApp chat only (not groups, RCS or the web widget) and need your own WhatsApp number.
+
+Amounts are whole numbers: `value` divided by `offset` is the amount, so `{ "value": 21000, "offset": 100 }` is 210.00, and `offset` is always `100`. `reference_id` is your own unique ID for the order and comes back on every payment update. `body.text` takes up to 1024 characters and `footer.text` up to 60. The request is checked against the rules below before it is sent, and anything that breaks them returns `400`.
+
+```json
+{
+  "clientWaNumber": "919876543210",
+  "messageType": "interactive",
+  "interactive": {
+    "type": "order_details",
+    "body": { "text": "Your order is ready. Tap below to pay." },
+    "action": {
+      "name": "review_and_pay",
+      "parameters": {
+        "reference_id": "order-1001",
+        "type": "digital-goods",
+        "payment_settings": [
+          {
+            "type": "payment_gateway",
+            "payment_gateway": {
+              "type": "razorpay",
+              "configuration_name": "my-razorpay"
+            }
+          }
+        ],
+        "currency": "INR",
+        "total_amount": { "value": 21000, "offset": 100 },
+        "order": {
+          "status": "pending",
+          "catalog_id": "1234567890",
+          "items": [
+            {
+              "retailer_id": "sku-1",
+              "name": "Sourdough bread",
+              "amount": { "value": 10000, "offset": 100 },
+              "quantity": 2
+            }
+          ],
+          "subtotal": { "value": 20000, "offset": 100 },
+          "tax": { "value": 1000, "offset": 100, "description": "GST" }
+        }
+      }
+    }
+  }
+}
+```
+
+| Field                                                       | Required | Description                                                                                                                                                                    |
+| ----------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `reference_id`                                              | Yes      | Your unique ID for the order: letters, digits, `_`, `-` and `.`. Up to 35 characters, or 60 when `currency` is `BRL`                                                           |
+| `type`                                                      | Yes      | `digital-goods` or `physical-goods`                                                                                                                                            |
+| `currency`                                                  | Yes      | `INR`, `SGD` or `BRL`                                                                                                                                                          |
+| `total_amount`                                              | Yes      | Must equal `subtotal` + `tax` + `shipping` - `discount`                                                                                                                        |
+| `payment_settings`, `payment_type`, `payment_configuration` | Yes      | How the contact pays. The shape depends on your country (see below)                                                                                                            |
+| `beneficiaries`                                             | No       | India, required for shipped `physical-goods`: one entry with `name`, `address_line1`, `city`, `state`, `country` (`India`) and `postal_code`, plus an optional `address_line2` |
+| `order`                                                     | Yes      | The order itself. Brazil may leave it out                                                                                                                                      |
+| `order.status`                                              | Yes      | Always `pending`                                                                                                                                                               |
+| `order.items`                                               | Yes      | One or more items (see below)                                                                                                                                                  |
+| `order.subtotal`                                            | Yes      | Sum over all items of `quantity` x `sale_amount`, or x `amount` when the item has no `sale_amount`                                                                             |
+| `order.tax`                                                 | Yes      | Tax amount, which may be zero, with an optional `description` (up to 60 characters)                                                                                            |
+| `order.shipping`                                            | No       | Shipping amount, with an optional `description` (up to 60 characters)                                                                                                          |
+| `order.discount`                                            | No       | Discount amount, with an optional `description` and `discount_program_name` (up to 60 characters each)                                                                         |
+| `order.catalog_id`                                          | No       | Your product catalog                                                                                                                                                           |
+| `order.expiration`                                          | No       | `{ "timestamp": "<UTC seconds>", "description": "..." }` after which the order can no longer be paid. At least 300 seconds from now; `description` up to 120 characters        |
+| `order.type`                                                | No       | `quick_pay` shows only a **Pay now** button                                                                                                                                    |
+
+Each entry in `order.items`:
+
+| Field                                                    | Required | Description                                                                                                                                                                                         |
+| -------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`                                                   | Yes      | Up to 60 characters                                                                                                                                                                                 |
+| `amount`                                                 | Yes      | Price per unit                                                                                                                                                                                      |
+| `quantity`                                               | Yes      | A whole number                                                                                                                                                                                      |
+| `sale_amount`                                            | No       | Discounted price per unit, lower than `amount`                                                                                                                                                      |
+| `retailer_id`                                            | No       | The item's ID in your catalog                                                                                                                                                                       |
+| `image`                                                  | No       | `{ "link": "https://..." }`. At most 10 items, and not together with `retailer_id` or `catalog_id`                                                                                                  |
+| `country_of_origin`, `importer_name`, `importer_address` | No       | India, required on every item when the order has no `catalog_id`. `importer_address` takes `address_line1`, `city`, `zone_code`, `postal_code` and `country_code`, plus an optional `address_line2` |
+
+How the payment is named depends on your country:
+
+| Country                | `currency` | What to send                                                                                                                                                                                 |
+| ---------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| India, payment gateway | `INR`      | `"payment_settings": [{ "type": "payment_gateway", "payment_gateway": { "type": "razorpay", "configuration_name": "my-razorpay" } }]`. `type` is `razorpay`, `payu`, `zaakpay` or `billdesk` |
+| India, UPI             | `INR`      | `"payment_type": "upi"` and `"payment_configuration": "my-upi"`                                                                                                                              |
+| Singapore              | `SGD`      | `"payment_type": "p2m-lite:stripe"` and `"payment_configuration": "my-stripe"`                                                                                                               |
+| Brazil                 | `BRL`      | `"payment_type": "br"` and one `payment_settings` entry (below)                                                                                                                              |
+
+A payment gateway entry can also carry `preferred_payment_methods` (`[{ "method": "gpay" }]`), `enabled_payment_options` (`upi`, `web`), and an object named after the gateway whose values come back on the payment update: `razorpay` (`receipt` up to 40 characters, `notes` with up to 15 keys), `payu` (`udf1` to `udf4`), `billdesk` (`additional_info1` to `additional_info7`) or `zaakpay` (`extra1`, `extra2`). `configuration_name` and `payment_configuration` take up to 60 characters.
+
+Brazil `payment_settings` entries:
+
+| `type`             | Fields                                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| `pix_dynamic_code` | `{ "code", "merchant_name", "key", "key_type" }`. `key_type` is `CPF`, `CNPJ`, `EMAIL`, `PHONE` or `EVP` |
+| `payment_link`     | `{ "uri": "https://..." }`                                                                               |
+| `boleto`           | `{ "digitable_line": "..." }`                                                                            |
+| `offsite_card_pay` | `{ "last_four_digits", "credential_id" }` for a card the contact saved with you                          |
+
+```json
+{
+  "clientWaNumber": "5511987654321",
+  "messageType": "interactive",
+  "interactive": {
+    "type": "order_details",
+    "body": { "text": "Seu pedido está pronto." },
+    "action": {
+      "name": "review_and_pay",
+      "parameters": {
+        "reference_id": "pedido-1001",
+        "type": "digital-goods",
+        "payment_type": "br",
+        "payment_settings": [
+          {
+            "type": "pix_dynamic_code",
+            "pix_dynamic_code": {
+              "code": "00020101021226700014br.gov.bcb.pix2548pix.example.com...",
+              "merchant_name": "Padaria Exemplo",
+              "key": "39580525000189",
+              "key_type": "CNPJ"
+            }
+          }
+        ],
+        "currency": "BRL",
+        "total_amount": { "value": 5000, "offset": 100 }
+      }
+    }
+  }
+}
+```
+
+In India (payment gateway) and Singapore, payment results arrive on your webhook as a [Payment Status Update](/docs/api/webhooks#payment-status-update), and the latest one is also stored on the message as `metaData.payment`. With India UPI and in Brazil, WhatsApp is not told the result: confirm the payment with your payment provider using `reference_id`.
+
+The contact can try to pay more than once, so treat `reference_id` as the order and expect several updates for it. Send each order with a new `reference_id`.
+
+After the payment, keep the contact informed with `order_status`, using the same `reference_id`:
+
+```json
+{
+  "clientWaNumber": "919876543210",
+  "messageType": "interactive",
+  "interactive": {
+    "type": "order_status",
+    "body": { "text": "Your order has shipped." },
+    "action": {
+      "name": "review_order",
+      "parameters": {
+        "reference_id": "order-1001",
+        "order": { "status": "shipped", "description": "Arriving Friday" }
+      }
+    }
+  }
+}
+```
+
+`order.status` is one of `pending`, `processing`, `partially_shipped`, `shipped`, `completed`, or `canceled`, with an optional `description` of up to 120 characters. `completed` and `canceled` are final. An order that has a successful or pending payment cannot be canceled.
+
+In Brazil, also tell WhatsApp the payment result once your payment provider confirms it, by adding `payment` next to `order`:
+
+```json
+"parameters": {
+  "reference_id": "pedido-1001",
+  "order": { "status": "processing" },
+  "payment": { "status": "captured", "timestamp": 1722445231 }
+}
+```
+
+`payment.status` is `pending`, `captured` or `failed`; `timestamp` is optional, in seconds.
 
 ---
 

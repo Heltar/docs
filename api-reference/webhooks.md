@@ -289,6 +289,70 @@ Triggered when a message fails with detailed error information.
 
 ---
 
+#### Payment Status Update
+
+Triggered when a contact pays, or tries to pay, an [`order_details` message](/docs/api/messages#payment-messages). `id` is the ID of that message and `payment.reference_id` is the `reference_id` you sent.
+
+```json
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "BUSINESS_ACCOUNT_ID",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "919876543210",
+              "phone_number_id": "PHONE_NUMBER_ID"
+            },
+            "statuses": [
+              {
+                "id": "wamid.HBgLOTE5ODc...",
+                "type": "payment",
+                "status": "captured",
+                "timestamp": "1705312400",
+                "recipient_id": "919876543210",
+                "payment": {
+                  "reference_id": "order-1001",
+                  "amount": { "value": 21000, "offset": 100 },
+                  "currency": "INR",
+                  "transaction": {
+                    "id": "order_Pg1a2b3c",
+                    "pg_transaction_id": "pay_Pg4d5e6f",
+                    "type": "razorpay",
+                    "status": "success",
+                    "method": { "type": "upi" }
+                  }
+                }
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}
+```
+
+| Status     | What it means                         |
+| ---------- | ------------------------------------- |
+| `captured` | Payment received                      |
+| `pending`  | Payment started but not completed yet |
+| `failed`   | Payment failed (Singapore)            |
+
+In India a failed attempt arrives as `pending`, with `payment.transaction.status` set to `failed` and the reason in `payment.transaction.error`. The contact can try again, so one order can send several updates; each attempt has its own `payment.transaction.pg_transaction_id`. Refunds you issue from your payment gateway are listed under `payment.refunds`.
+
+A payment status never changes the delivery status of the message. Tell them apart by `"type": "payment"`.
+
+Treat this update as a signal, not as proof of payment: before you ship or fulfil an order, confirm the payment for its `reference_id` with your payment gateway.
+
+These updates are sent for India payment gateway and Singapore orders. India UPI and Brazil orders have none. In Brazil, when a contact chooses to pay with a saved card, you instead receive a message with `"type": "interactive"` and `interactive.type` set to `payment_method`, carrying the `reference_id`, `last_four_digits` and `credential_id` to charge.
+
+---
+
 ### Custom Field Webhook Format (`metaCustomFieldHook`)
 
 If your webhook uses the `metaCustomFieldHook` field type and you pass custom data via the `integrations` array when sending messages, your webhook receives the Meta payload with your custom data prepended:
