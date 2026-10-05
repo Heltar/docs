@@ -685,6 +685,7 @@ description: Estimated cost per template per day, with a per-country breakdown.
 
 - startDate: string [required] - First day of the period, `YYYY-MM-DD` (not before `2026-07-01`)
 - endDate: string [required] - Last day of the period (inclusive), `YYYY-MM-DD`
+- scope: string - `business` (default) for the current business, or `org` for every business in your organisation
 
 ## Response
 
@@ -752,7 +753,9 @@ description: Estimated cost per template per day, with a per-country breakdown.
 > [!IMPORTANT]
 > This view is an estimate built from the messages the platform sent. Meta does not report volume per template, so it cannot be reconciled with your invoice line by line; use `GET /v1/templates/cost-analytics` for the exact figures. Because each `countryRows` entry is rounded on its own, summing them can differ from the matching `rows` entry by a paisa or two.
 
-This endpoint is per business only: `scope=org` returns `400`. It returns `503` when the analytics store is temporarily unavailable.
+**Organisation scope.** With `scope=org` every `rows` and `countryRows` entry carries `businessId`, `businessName` and `phone`. Each business's templates are kept as separate rows and priced at that business's own rates, and `totalEstimatedCost` is the sum across businesses. Org scope requires access to every business in the organisation and returns `403` otherwise.
+
+It returns `503` when the analytics store is temporarily unavailable.
 
 ### Cost Analytics by Template Example
 
@@ -765,11 +768,11 @@ curl -X GET "{{API_URL}}/v1/templates/cost-analytics/templates?startDate=2026-08
 
 ## Errors
 
-| Status | When                                                                                                                                                                                                                                                  |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 400    | A missing or malformed `startDate` / `endDate`, an `endDate` before `startDate`, a cost analytics period starting before `2026-07-01`, `scope=org` on the per-template cost endpoint, or a request that Meta rejected (Meta's error is in `errorRaw`) |
-| 401    | Missing, invalid, expired or revoked API key                                                                                                                                                                                                          |
-| 403    | The API key does not cover this endpoint (`templates:read` for `/v1/templates/*`, a Full access or Read-only key for `/v1/analytics/*`), or org-wide scope was requested without access to every business in the organisation                         |
-| 404    | Pricing or cost analytics requested on an account without cost visibility enabled                                                                                                                                                                     |
-| 429    | Rate limit reached: API keys may call the analytics endpoints 60 times per 15 minutes per business. Wait for the `Retry-After` header before retrying                                                                                                 |
-| 503    | The analytics store is temporarily unavailable. Retry after a few seconds                                                                                                                                                                             |
+| Status | When                                                                                                                                                                                                                          |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400    | A missing or malformed `startDate` / `endDate`, an `endDate` before `startDate`, a cost analytics period starting before `2026-07-01`, or a request that Meta rejected (Meta's error is in `errorRaw`)                        |
+| 401    | Missing, invalid, expired or revoked API key                                                                                                                                                                                  |
+| 403    | The API key does not cover this endpoint (`templates:read` for `/v1/templates/*`, a Full access or Read-only key for `/v1/analytics/*`), or org-wide scope was requested without access to every business in the organisation |
+| 404    | Pricing or cost analytics requested on an account without cost visibility enabled                                                                                                                                             |
+| 429    | Rate limit reached: API keys may call the analytics endpoints 60 times per 15 minutes per business. Wait for the `Retry-After` header before retrying                                                                         |
+| 503    | The analytics store is temporarily unavailable. Retry after a few seconds                                                                                                                                                     |
