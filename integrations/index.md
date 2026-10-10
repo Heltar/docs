@@ -18,19 +18,21 @@ Connect third-party tools to the platform and start sending WhatsApp messages fr
 [MoEngage](/docs/integrations/mo-engage) - Trigger WhatsApp messages from MoEngage campaigns and receive delivery status + replies back.
 [Web chat widget](/docs/integrations/web-widget) - Embed an in-page chat that flows into the same inbox as WhatsApp.
 [Embedded agent chat](/docs/integrations/embedded-chat) - Drop the agent conversation window into your CRM to reply to a lead in place.
+[Export to Amazon S3](/docs/integrations/amazon-s3-export) - Get every message status change as CSV files in your own S3 bucket, every 10 minutes.
 :::
 
 ---
 
 ## What's available today
 
-| Integration                                             | Use case                                                |
-| ------------------------------------------------------- | ------------------------------------------------------- |
-| [WebEngage](/docs/integrations/web-engage)              | Customer engagement, journey builder, campaigns         |
-| [CleverTap](/docs/integrations/clever-tap)              | Customer engagement, campaigns, journeys                |
-| [MoEngage](/docs/integrations/mo-engage)                | Customer engagement, campaigns, journeys, replies       |
-| [Web chat widget](/docs/integrations/web-widget)        | In-page chat that flows into the same inbox as WhatsApp |
-| [Embedded agent chat](/docs/integrations/embedded-chat) | Agent conversation window embedded in your own CRM      |
+| Integration                                                | Use case                                                |
+| ---------------------------------------------------------- | ------------------------------------------------------- |
+| [WebEngage](/docs/integrations/web-engage)                 | Customer engagement, journey builder, campaigns         |
+| [CleverTap](/docs/integrations/clever-tap)                 | Customer engagement, campaigns, journeys                |
+| [MoEngage](/docs/integrations/mo-engage)                   | Customer engagement, campaigns, journeys, replies       |
+| [Web chat widget](/docs/integrations/web-widget)           | In-page chat that flows into the same inbox as WhatsApp |
+| [Embedded agent chat](/docs/integrations/embedded-chat)    | Agent conversation window embedded in your own CRM      |
+| [Export to Amazon S3](/docs/integrations/amazon-s3-export) | Message data in your own S3 bucket, every 10 minutes    |
 
 More integrations (Shopify, Link Tracker) are configurable from the **App Store** in the dashboard. Dedicated step-by-step guides for those will land here next.
 
