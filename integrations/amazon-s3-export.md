@@ -169,10 +169,12 @@ Create `whatsapp_messages_raw` with the 18 columns above, in the same order. Use
 - **Status:** the settings page shows how far the export has got, the last file written and when the next run is.
 - **Turn off / on:** the switch on the destination. Turning it back on resumes from where it stopped.
 - **Edit:** change the bucket, folder or access method at any time. Each change is tested before it's saved.
-- **Delete:** stops exporting and removes the settings. Files already in your bucket stay there.
+- **Delete:** stops exporting and removes the settings. Files already in your bucket stay there. Setting it up again gives a new external ID, so update your role's trust policy with the one shown.
 - **Alerts:** if writing keeps failing for an hour, team members who turned on **Settings → Email Alerts → Webhook failure alerts** get an email.
 
 ## Troubleshooting
+
+Changes in AWS, like a new permission policy or an edited trust policy, can take a few minutes to apply. If you've just made one and the test still fails, wait a few minutes and test again.
 
 | Message                                                               | Fix                                                                                       |
 | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
