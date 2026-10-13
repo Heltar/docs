@@ -62,38 +62,25 @@ Set up notifications:
 
 ## Message Pricing
 
-### WhatsApp Conversation Pricing
+### How WhatsApp Messages Are Charged
 
-WhatsApp charges per 24-hour conversation window:
+WhatsApp is charged **per message**, by category. There is no 24-hour conversation fee.
 
-| Category           | Price (INR)           |
-| ------------------ | --------------------- |
-| **Marketing**      | Rs 0.75 - 1.00        |
-| **Utility**        | Rs 0.30 - 0.50        |
-| **Authentication** | Rs 0.25 - 0.40        |
-| **Service**        | Free (user-initiated) |
+| Category           | What it covers                                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **Marketing**      | Template messages: promotions, offers, announcements                                                             |
+| **Utility**        | Template messages: order updates, confirmations, alerts                                                          |
+| **Authentication** | Template messages: OTPs, verification codes                                                                      |
+| **Service**        | Free-form replies (no template) you send inside the 24-hour customer service window. Charged from 1 October 2026 |
 
 > [!INFO]
-> Prices vary by country. India rates shown above.
+> Rates depend on the category and the recipient's country. Your per-message rates appear on your invoice, and **Settings -> Development & Analytics -> Cost Analytics** shows what each category has cost so far.
 
-### Conversation Categories
+### Not Charged
 
-| Category           | Examples                             |
-| ------------------ | ------------------------------------ |
-| **Marketing**      | Promotions, offers, announcements    |
-| **Utility**        | Order updates, confirmations, alerts |
-| **Authentication** | OTPs, verification codes             |
-| **Service**        | Customer-initiated support           |
-
-### Free Entry Points
-
-No charge when customer initiates via:
-
-- Click-to-WhatsApp ads
-- Facebook Page CTA
-- WhatsApp QR codes
-
-First 1,000 service conversations/month are free.
+- Messages your customers send you
+- Internal notes
+- Messages that fail to send
 
 ## Transaction History
 
