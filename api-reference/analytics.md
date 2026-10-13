@@ -566,7 +566,8 @@ description: Day-wise billable volume and cost by country and category, AI usage
     "categoryBreakdown": {
       "MARKETING": { "messages": 3900, "cost": 3042 },
       "UTILITY": { "messages": 1200, "cost": 138 },
-      "AUTHENTICATION": { "messages": 0, "cost": 0 }
+      "AUTHENTICATION": { "messages": 0, "cost": 0 },
+      "SERVICE": { "messages": 0, "cost": 0 }
     },
     "volumeSource": "standard",
     "aiUsage": {
@@ -605,6 +606,8 @@ description: Day-wise billable volume and cost by country and category, AI usage
 
 **Messaging.** `volumeRows` has one row per day, country and category, most recent day first and highest cost first within a day. `volume`, `unitPrice` and `cost` are the billed figures. `sentCount`, `deliveredCount` and `failedCount` are the platform's own delivery counts for the same group (cumulative, so `sentCount` includes delivered messages); they come from a different ledger than the billed volume and can differ from it slightly. They are omitted when the platform has no record of the group, which happens when the number also sends through another tool. A row can also show counts with `volume: 0` for a day where nothing was billable, for example when every message failed.
 
+`category` is `MARKETING`, `UTILITY`, `AUTHENTICATION` or `SERVICE`. `SERVICE` covers free-form (non-template) replies sent inside the 24-hour customer service window, which Meta charges from 1 October 2026 at each market's utility rate; they appear only for days from that date. Messages typed in the WhatsApp Business app on a coexistence number are not counted.
+
 `volumeSource` tells you how billable volume was counted for your account: `standard` counts messages from `sent` onwards, `conservative` counts messages from `delivered` onwards.
 
 **AI usage.** `aiUsage.rows` is one row per model for the whole period and `aiUsage.dailyRows` the same split by day; `model` is `null` for usage recorded without a model name. `totalCostInr` is `totalCostUsd` converted at `usdToInrRate`.
@@ -621,7 +624,8 @@ description: Day-wise billable volume and cost by country and category, AI usage
   "categoryBreakdown": {
     "MARKETING": { "messages": 3900, "cost": 3042 },
     "UTILITY": { "messages": 1200, "cost": 138 },
-    "AUTHENTICATION": { "messages": 0, "cost": 0 }
+    "AUTHENTICATION": { "messages": 0, "cost": 0 },
+    "SERVICE": { "messages": 0, "cost": 0 }
   },
   "billableMessages": 5100,
   "totalMessagingCost": 3180,
@@ -748,7 +752,7 @@ description: Estimated cost per template per day, with a per-country breakdown.
 
 :::
 
-`rows` has one entry per template, category and day; `countryRows` splits the same groups by recipient country and adds the `unitPrice` that applied. `billableCount` is the number of messages your account's billing rule counts as billable, and `estimatedCost` is that count priced at the current rates.
+This view covers template messages only; `SERVICE` messages are billed in [Cost Analytics](#cost-analytics) and never spread across templates. `rows` has one entry per template, category and day; `countryRows` splits the same groups by recipient country and adds the `unitPrice` that applied. `billableCount` is the number of messages your account's billing rule counts as billable, and `estimatedCost` is that count priced at the current rates.
 
 > [!IMPORTANT]
 > This view is an estimate built from the messages the platform sent. Meta does not report volume per template, so it cannot be reconciled with your invoice line by line; use `GET /v1/templates/cost-analytics` for the exact figures. Because each `countryRows` entry is rounded on its own, summing them can differ from the matching `rows` entry by a paisa or two.
