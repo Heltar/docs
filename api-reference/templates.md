@@ -937,7 +937,7 @@ How it works:
 
 - A config is keyed on `sourceTemplateName` + `sourceLanguageCode` + `triggerCondition`. Saving the same key again updates that config instead of creating a second one.
 - The fallback is sent in the same language as the source, using the parameters you supplied for the source template. That is why the fallback must have the same variable signature: the same header format and header variable count, the same number of body variables, the same number of buttons with matching types and URL-variable usage, and the same carousel card count and card layout.
-- Only one substitution happens per send. If the fallback template is itself paused, no second fallback is applied.
+- Up to two substitutions happen per send. If the fallback template is itself paused or recategorised to `MARKETING`, its own fallback is tried next (A falls back to B, B falls back to C). The chain stops after the second hop.
 - A config with `isEnabled: false` is kept but ignored.
 - Configs cannot form a loop (A falls back to B, B falls back to A).
 - Fallback is resolved before the [marketing pause](#pause-marketing-templates) check, so a `UTILITY_TO_MARKETING` fallback keeps messages flowing even while marketing templates are paused.
