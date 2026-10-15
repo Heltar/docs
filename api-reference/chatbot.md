@@ -375,14 +375,17 @@ description: List every chatbot your business can use, newest first. Includes bo
       "name": "Support Bot",
       "type": "llm"
     },
-    "activeVoiceBot": null
+    "activeVoiceBot": null,
+    "activeChatbotId": "550e8400-e29b-41d4-a716-446655440000",
+    "activeVoiceBotId": null,
+    "liveChatbots": []
   }
 }
 ```
 
 :::
 
-Each entry is the [chatbot object](#the-chatbot-object) (abbreviated above) with one extra field: `functionDefinitionsCount`, the number of functions linked to the bot. With `includeFunctionNames=true` the count is replaced by `functions`, an array of function names. `activeChatbot` and `activeVoiceBot` are the matching entries from `chatbots`, or `null`.
+Each entry is the [chatbot object](#the-chatbot-object) (abbreviated above) with one extra field: `functionDefinitionsCount`, the number of functions linked to the bot. With `includeFunctionNames=true` the count is replaced by `functions`, an array of function names. `activeChatbot` and `activeVoiceBot` are the matching entries from `chatbots`, or `null`. The answer also carries the routing state — `activeChatbotId`, `activeVoiceBotId` and the [live chatbots](#live-chatbots) split — so one call tells you which bots answer and how.
 
 ```bash
 curl -X GET "{{API_URL}}/v1/chatbots?includeFunctionNames=true" \
@@ -642,7 +645,7 @@ curl -X PUT "{{API_URL}}/v1/chatbots/550e8400-e29b-41d4-a716-446655440000" \
 method: DELETE
 endpoint: /v1/chatbots/:id
 title: Delete Chatbot
-description: Permanently delete a chatbot. Functions that belong only to this bot are deleted with it; organization-level functions are unlinked but kept. Bot results stay but lose their reference to the bot. If the bot was the active text or voice bot, that slot is cleared.
+description: Permanently delete a chatbot. Functions that belong only to this bot are deleted with it; organization-level functions are unlinked but kept. Bot results stay but lose their reference to the bot. Every business in your organization that routed to the bot — as its active text or voice bot, or in its live chatbots split — is detached from it in the same request.
 
 ## Path Parameters
 
@@ -653,11 +656,17 @@ description: Permanently delete a chatbot. Functions that belong only to this bo
 ```response
 {
   "message": "Chatbot deleted successfully",
-  "data": null
+  "data": {
+    "activeChatbotId": null,
+    "activeVoiceBotId": null,
+    "liveChatbots": []
+  }
 }
 ```
 
 :::
+
+`data` is the routing state after the delete, the same shape [Set Active Bot](#set-active-bot) returns.
 
 ```bash
 curl -X DELETE "{{API_URL}}/v1/chatbots/550e8400-e29b-41d4-a716-446655440000" \
@@ -816,6 +825,8 @@ description: Assign or unassign a chatbot as the active text or voice bot for yo
   "message": "Active text bot set successfully",
   "data": {
     "activeChatbotId": "550e8400-e29b-41d4-a716-446655440000",
+    "activeVoiceBotId": null,
+    "liveChatbots": [],
     "botType": "text"
   }
 }
@@ -823,7 +834,7 @@ description: Assign or unassign a chatbot as the active text or voice bot for yo
 
 :::
 
-The key in `data` follows `botType`: `activeChatbotId` for `text`, `activeVoiceBotId` for `voice`. Deactivating returns `"Text bot deactivated successfully"` (or `"Voice bot deactivated successfully"`) with the key set to `null`.
+`data` carries the whole routing state after the change: `activeChatbotId`, `activeVoiceBotId` and the [live chatbots](#live-chatbots) list, so one answer tells you how chats route now. Deactivating returns `"Text bot deactivated successfully"` (or `"Voice bot deactivated successfully"`) with that pointer set to `null`. When `liveChatbots` is not empty, the active text bot is the fallback, not the only text bot.
 
 > [!TIP]
 > To unassign/deactivate, send `"chatbotId": null` with the desired `botType`.
@@ -869,14 +880,17 @@ description: Get the currently active text and voice bots for your business.
       "model": "google/gemini-3.5-flash"
     },
     "activeVoiceBotId": null,
-    "activeVoiceBot": null
+    "activeVoiceBot": null,
+    "liveChatbots": [
+      { "chatbotId": "550e8400-e29b-41d4-a716-446655440000", "weight": 100 }
+    ]
   }
 }
 ```
 
 :::
 
-`activeChatbot` and `activeVoiceBot` are full [chatbot objects](#the-chatbot-object) (abbreviated above). When no bot is active, the ID field is omitted and the object is `null`.
+`activeChatbot` and `activeVoiceBot` are full [chatbot objects](#the-chatbot-object) (abbreviated above). When no bot is active, the ID field is `null` and so is the object. `liveChatbots` is the weighted split (empty when routing goes to the single active bot).
 
 ```bash
 curl -X GET "{{API_URL}}/v1/chatbots/active/all" \
@@ -917,6 +931,8 @@ description: Replace the list of live text bots and their traffic weights. Send 
 {
   "message": "Live chatbots config updated successfully",
   "data": {
+    "activeChatbotId": "550e8400-e29b-41d4-a716-446655440000",
+    "activeVoiceBotId": null,
     "liveChatbots": [
       { "chatbotId": "550e8400-e29b-41d4-a716-446655440000", "weight": 70 },
       { "chatbotId": "7c9e6679-7425-40de-944b-e07fc1f90ae7", "weight": 30 }
@@ -926,6 +942,8 @@ description: Replace the list of live text bots and their traffic weights. Send 
 ```
 
 :::
+
+`data` is the whole routing state after the change, the same shape [Set Active Bot](#set-active-bot) returns.
 
 How a bot is chosen for a contact:
 

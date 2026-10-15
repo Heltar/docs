@@ -356,12 +356,22 @@ Makes the chatbot handle voice calls:
 3. Select **Publish as Voice Bot**
 
 > [!INFO]
-> Only one chatbot can be active as Text Bot and one as Voice Bot at a time.
+> Without a traffic split, one chatbot answers text chats and one handles voice calls. Publishing another text bot replaces the current one.
 
 ### Unpublish
 
 1. Click **Publish** button
 2. Select **Unpublish Text Bot** or **Unpublish Voice Bot**
+
+### When a traffic split is set
+
+Once Live Chatbots (below) has at least one bot switched on, the text items of the **Publish** button and of the card's **⋮** menu change, because new chats are then split between the live bots:
+
+- **Set as fallback bot** / **Remove as fallback bot** — the fallback answers when weighted routing cannot pick a bot (none live, or every weight is 0). The card shows it as **Text · Fallback**.
+- **Add to traffic split** / **Remove from traffic split** — puts the bot into the split at the average weight of the bots already live, or takes it out. The card shows a live bot as **Text · N%**.
+- **Adjust traffic split…** — opens Settings → Live Chatbots to change weights.
+
+A bot that is neither in the split, nor the fallback, nor the voice bot shows as **Inactive** and does not answer. The AI Agent page, each bot's Playground and Settings → Live Chatbots all read the same routing state, so they always agree.
 
 ---
 
