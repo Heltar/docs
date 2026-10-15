@@ -7,7 +7,7 @@ order: 12
 
 # Export to Amazon S3
 
-Every 10 minutes, HeltarChat writes a CSV file to your own Amazon S3 bucket. Each file holds every outgoing message whose status changed in that 10-minute window, one row per message with its full current state. Load the files into Redshift, Athena, Snowflake or your data lake.
+Every 10 minutes, HeltarChat writes a CSV file to your own Amazon S3 bucket. Each file holds every message, sent or received, whose status changed in that 10-minute window, one row per message with its full current state. Load the files into Redshift, Athena, Snowflake or your data lake.
 
 Set it up in **Settings → Data Export**. It takes about 10 minutes in the AWS console.
 
@@ -16,7 +16,7 @@ Set it up in **Settings → Data Export**. It takes about 10 minutes in the AWS 
 ## What you get
 
 - **One file per 10-minute window** (UTC), written about 3–8 minutes after the window ends. A window with no changes writes no file.
-- **Outgoing messages only:** templates, session messages and bot replies. Incoming customer messages are not exported, but a customer's reply to your message appears in that message's `reply` column.
+- **Sent and received messages:** templates, session messages and bot replies, and your customers' messages. A received message has the status `received`, which no sent message ever has, so filter on `status != 'received'` to keep only what you sent. A customer's reply also appears in the `reply` column of the message it answered.
 - **One row per message per file,** with its latest state. A message appears again in a later file when its status changes (sent → delivered → read). Keep the row with the newest `updated_at` for each `message_id`.
 - **Nothing is missed.** If writing fails (a changed policy, a deleted bucket), we keep retrying and catch up on every window once it works again. Turning the export off and back on also resumes where it stopped.
 
@@ -34,28 +34,31 @@ s3://<bucket>/<folder>/messages/business_id=<id>/date=2026-10-10/20261010T0940Z_
 
 Times are ISO 8601 in UTC, like `2026-10-10T09:41:07.123Z`. An empty cell means the event hasn't happened.
 
-| Column              | Meaning                                                                          |
-| ------------------- | -------------------------------------------------------------------------------- |
-| `message_id`        | WhatsApp message ID (`wamid…`)                                                   |
-| `heltar_message_id` | Our message ID                                                                   |
-| `phone_number`      | Recipient's phone number, with country code                                      |
-| `message_type`      | `template`, `text`, `image`, `interactive`, …                                    |
-| `template_name`     | Template name, for template messages                                             |
-| `template_category` | `MARKETING`, `UTILITY` or `AUTHENTICATION`                                       |
-| `template_language` | Template language code, like `en`                                                |
-| `status`            | Current status: `sent`, `delivered`, `read`, `failed`, `responded`, `clicked`, … |
-| `created_at`        | When the message was sent                                                        |
-| `sent_at`           | When WhatsApp accepted it                                                        |
-| `delivered_at`      | When it reached the phone                                                        |
-| `read_at`           | When it was read                                                                 |
-| `failed_at`         | When it failed                                                                   |
-| `clicked_at`        | When a link in it was clicked                                                    |
-| `replied_at`        | When the customer replied                                                        |
-| `failure_reason`    | Why it failed, from WhatsApp                                                     |
-| `reply`             | The customer's reply text                                                        |
-| `updated_at`        | When this row last changed. Use it to keep the newest row per `message_id`.      |
+| Column              | Meaning                                                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `message_id`        | WhatsApp message ID (`wamid…`)                                                                                                |
+| `heltar_message_id` | Our message ID                                                                                                                |
+| `phone_number`      | Your customer's phone number, with country code: who you sent the message to, or who sent it to you                           |
+| `message_type`      | `template`, `text`, `media`, `interactive`, …                                                                                 |
+| `template_name`     | Template name, for template messages                                                                                          |
+| `template_category` | `MARKETING`, `UTILITY` or `AUTHENTICATION`                                                                                    |
+| `template_language` | Template language code, like `en`                                                                                             |
+| `status`            | Current status: `sent`, `delivered`, `read`, `failed`, `responded`, `clicked`, …; `received` for a message your customer sent |
+| `created_at`        | When the message was sent or received                                                                                         |
+| `sent_at`           | When WhatsApp accepted it                                                                                                     |
+| `delivered_at`      | When it reached the phone                                                                                                     |
+| `read_at`           | When it was read                                                                                                              |
+| `failed_at`         | When it failed                                                                                                                |
+| `clicked_at`        | When a link in it was clicked                                                                                                 |
+| `replied_at`        | When the customer replied                                                                                                     |
+| `failure_reason`    | Why it failed, from WhatsApp                                                                                                  |
+| `reply`             | The customer's reply text                                                                                                     |
+| `updated_at`        | When this row last changed. Use it to keep the newest row per `message_id`.                                                   |
+| `message_text`      | The message's text: the filled-in template, the text message or the media caption. Empty for media without a caption          |
 
 The first line of each file is the header. Values with commas, quotes or line breaks are quoted as standard CSV.
+
+Columns are never renamed, moved or removed. New ones are only added at the end, so when one appears, add it to the end of your table too (in Redshift, `ALTER TABLE … ADD COLUMN`).
 
 ---
 
@@ -160,7 +163,7 @@ FROM (
 WHERE row_rank = 1;
 ```
 
-Create `whatsapp_messages_raw` with the 18 columns above, in the same order. Use `TIMESTAMPTZ` for the `_at` columns (the times end in `Z`) and `VARCHAR` for the rest (`reply` and `failure_reason` can be long, so give them `VARCHAR(65535)`).
+Create `whatsapp_messages_raw` with the 19 columns above, in the same order. Use `TIMESTAMPTZ` for the `_at` columns (the times end in `Z`) and `VARCHAR` for the rest (`message_text`, `reply` and `failure_reason` can be long, so give them `VARCHAR(65535)`).
 
 ---
 
