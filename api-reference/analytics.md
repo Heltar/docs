@@ -536,6 +536,7 @@ description: Day-wise billable volume and cost by country and category, AI usage
 {
   "message": "Cost analytics retrieved successfully",
   "data": {
+    "currency": "INR",
     "volumeRows": [
       {
         "date": "2026-08-03",
@@ -594,8 +595,8 @@ description: Day-wise billable volume and cost by country and category, AI usage
       ],
       "totalTokens": 206000,
       "totalCostUsd": 0.42,
-      "totalCostInr": 36.54,
-      "usdToInrRate": 87
+      "totalCost": 36.54,
+      "usdExchangeRate": 87
     },
     "grandTotalCost": 3216.54
   }
@@ -610,9 +611,11 @@ description: Day-wise billable volume and cost by country and category, AI usage
 
 `volumeSource` tells you how billable volume was counted for your account: `standard` counts messages from `sent` onwards, `conservative` counts messages from `delivered` onwards.
 
-**AI usage.** `aiUsage.rows` is one row per model for the whole period and `aiUsage.dailyRows` the same split by day; `model` is `null` for usage recorded without a model name. `totalCostInr` is `totalCostUsd` converted at `usdToInrRate`.
+**Currency.** Every amount is in `currency`, your organisation's billing currency — the currency your bills are in.
 
-**Total.** `grandTotalCost` is `totalMessagingCost + aiUsage.totalCostInr`, in INR.
+**AI usage.** `aiUsage.rows` is one row per model for the whole period and `aiUsage.dailyRows` the same split by day; `model` is `null` for usage recorded without a model name. AI is priced in USD: `totalCost` is `totalCostUsd` converted to `currency` at `usdExchangeRate`. If the exchange rate cannot be read at that moment, `usdExchangeRate` and `totalCost` are `null` (unknown, never estimated) while there is AI usage to convert.
+
+**Total.** `grandTotalCost` is `totalMessagingCost + aiUsage.totalCost`, in `currency`; it is `null` whenever `aiUsage.totalCost` is.
 
 **Organisation scope.** With `scope=org` every `volumeRows` entry carries `businessId` and `businessName`, `aiUsage` is summed across businesses, and the response gains a `businesses` array with one summary per business:
 
@@ -629,7 +632,7 @@ description: Day-wise billable volume and cost by country and category, AI usage
   },
   "billableMessages": 5100,
   "totalMessagingCost": 3180,
-  "aiCostInr": 36.54,
+  "aiCost": 36.54,
   "grandTotalCost": 3216.54
 }
 ```
@@ -657,8 +660,8 @@ const response = await fetch(
 );
 
 const { data } = await response.json();
-console.log('Messaging (INR):', data.totalMessagingCost);
-console.log('Grand total (INR):', data.grandTotalCost);
+console.log(`Messaging (${data.currency}):`, data.totalMessagingCost);
+console.log(`Grand total (${data.currency}):`, data.grandTotalCost);
 ```
 
 ```python
@@ -671,8 +674,8 @@ response = requests.get(
 )
 
 data = response.json()['data']
-print('Messaging (INR):', data['totalMessagingCost'])
-print('Grand total (INR):', data['grandTotalCost'])
+print(f"Messaging ({data['currency']}):", data['totalMessagingCost'])
+print(f"Grand total ({data['currency']}):", data['grandTotalCost'])
 ```
 
 :::
@@ -697,6 +700,8 @@ description: Estimated cost per template per day, with a per-country breakdown.
 {
   "message": "Template cost analytics retrieved successfully",
   "data": {
+    "source": "database",
+    "currency": "INR",
     "rows": [
       {
         "date": "2026-08-03",
@@ -752,7 +757,7 @@ description: Estimated cost per template per day, with a per-country breakdown.
 
 :::
 
-This view covers template messages only; `SERVICE` messages are billed in [Cost Analytics](#cost-analytics) and never spread across templates. `rows` has one entry per template, category and day; `countryRows` splits the same groups by recipient country and adds the `unitPrice` that applied. `billableCount` is the number of messages your account's billing rule counts as billable, and `estimatedCost` is that count priced at the current rates.
+This view covers template messages only; `SERVICE` messages are billed in [Cost Analytics](#cost-analytics) and never spread across templates. `rows` has one entry per template, category and day; `countryRows` splits the same groups by recipient country and adds the `unitPrice` that applied. `billableCount` is the number of messages your account's billing rule counts as billable, and `estimatedCost` is that count priced at the current rates, in `currency` (your organisation's billing currency).
 
 > [!IMPORTANT]
 > This view is an estimate built from the messages the platform sent. Meta does not report volume per template, so it cannot be reconciled with your invoice line by line; use `GET /v1/templates/cost-analytics` for the exact figures. Because each `countryRows` entry is rounded on its own, summing them can differ from the matching `rows` entry by a paisa or two.
