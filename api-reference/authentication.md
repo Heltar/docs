@@ -100,7 +100,7 @@ When you create a key you can pick a **preset** — **Full access** or **Read-on
 A call that the key isn't scoped for returns **403 Forbidden**.
 
 > [!NOTE]
-> Account-level endpoints that are not in the table — `/v1/business/*` (account status, opt-in/opt-out rules, profile, settings), `/v1/auth/business-employees/*` and `/v1/role-permission` (team), `/v1/analytics/*`, `/v1/link-tracker/*`, `/v1/voice-calls/*`, `/v1/sip/*` and `/v1/wallet/*` — are not part of the per-resource picker. Call them with a key created with the **Full access** preset (or **Read-only** for GET requests).
+> Account-level endpoints that are not in the table — `/v1/business/*` (account status, opt-in/opt-out rules, profile, settings), `GET /v1/auth/business-employees` and `GET /v1/role-permission` (team reads; every team write is dashboard-only), `/v1/analytics/*`, `/v1/link-tracker/*`, `/v1/voice-calls/*`, `/v1/sip/*` and `/v1/wallet/*` — are not part of the per-resource picker. Call them with a key created with the **Full access** preset (or **Read-only** for GET requests).
 
 > [!NOTE]
 > Some dashboard-only areas (such as **webhooks** and **flows**) can never be reached with an API key — even a full-access (`*`) one. Configure those in the app.

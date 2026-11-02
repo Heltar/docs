@@ -95,8 +95,10 @@ The platform routes the call to your gateway, the message lands on the customer'
 **Route Mobile** — in the Route Mobile dashboard set the webhook URL to:
 
 ```
-POST https://api.heltar.com/v1/webhooks/rcs
+POST https://api.heltar.com/v1/webhooks/rcs/<webhookToken>
 ```
+
+`webhookToken` is the value stored on your Route Mobile RCS key (`metadata.webhookToken`); the bare `/v1/webhooks/rcs` form keeps working during migration.
 
 **Google RCS** — set the webhook in the [RCS for Business developer console](https://business-communications.cloud.google.com/console/):
 

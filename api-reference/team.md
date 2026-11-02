@@ -15,7 +15,7 @@ The list endpoint is the one most integrations need: [List Team Members](#list-t
 
 ## Authentication
 
-All endpoints on this page require a valid API key in the `Authorization` header.
+Read endpoints on this page accept an API key in the `Authorization` header. Every endpoint that changes the team (inviting, roles, business access, removing or restoring members, resending invitations, switching members on or off, chat assignment, quick replies, your own settings, 2FA and role permissions) is **Dashboard session only**: call it with the signed-in dashboard session token; an API key receives `403`.
 
 ```bash
 Authorization: Bearer YOUR_API_KEY
@@ -24,11 +24,11 @@ Authorization: Bearer YOUR_API_KEY
 See [Authentication](/docs/api/authentication) for full setup instructions.
 
 > [!NOTE]
-> The `/v1/auth/business-employees/*` and `/v1/role-permission` endpoints are outside the per-resource scope picker. Use an API key created with the **Full access** preset (or **Read-only** for GET requests). A key without the right preset receives `403 API key does not have the required scope (auth:write)` (or `auth:read`, `role-permission:read`, `role-permission:write`).
+> The `GET /v1/auth/business-employees` and `GET /v1/role-permission` reads are outside the per-resource scope picker. Use an API key created with the **Full access** or **Read-only** preset. A key without the right preset receives `403 API key does not have the required scope (auth:read)` (or `role-permission:read`).
 
 > [!IMPORTANT]
 > Two layers of access apply on this page. The key's preset (above) decides whether the request is accepted at all. On top of that, when the request comes from a signed-in team member (the dashboard), the caller's own role must grant the permission each endpoint names, for example "requires `employeeManagement`"; otherwise the member receives `403 You do not have permission to access employee management feature. Please contact the account owner if access is required.`
-> An API key is not a team member: it carries no email and no role. Endpoints that act on "you" or that are reserved for the `OWNER` role therefore work from the dashboard only and are marked **Dashboard session only** below. Everything else works with a Full access key.
+> An API key is not a team member: it carries no email and no role, so it can only read the roster and the roles. Every write is marked **Dashboard session only** below and works from the dashboard alone.
 
 ---
 
@@ -177,7 +177,7 @@ curl -X GET "{{API_URL}}/v1/auth/business-employees?includeDeleted=true" \
 method: POST
 endpoint: /v1/auth/business-employees
 title: Invite a Team Member
-description: Add a person to your organisation and email them an invitation link. The member appears in the list immediately with status `invited` and becomes `active` when they accept. Requires `employeeManagement`.
+description: Add a person to your organisation and email them an invitation link. The member appears in the list immediately with status `invited` and becomes `active` when they accept. Requires `employeeManagement`. Dashboard session only.
 
 ## Body Parameters
 
@@ -224,9 +224,8 @@ description: Add a person to your organisation and email them an invitation link
 
 ```curl
 curl -X POST "{{API_URL}}/v1/auth/business-employees" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -H "Content-Type: application/json" \
-  -H "Origin: https://app.example.com" \
   -d '{
     "name": "Rahul Verma",
     "email": "agent@example.com",
@@ -241,9 +240,8 @@ curl -X POST "{{API_URL}}/v1/auth/business-employees" \
 const response = await fetch('{{API_URL}}/v1/auth/business-employees', {
   method: 'POST',
   headers: {
-    Authorization: 'Bearer YOUR_API_KEY',
+    Authorization: 'Bearer YOUR_SESSION_TOKEN',
     'Content-Type': 'application/json',
-    Origin: 'https://app.example.com',
   },
   body: JSON.stringify({
     name: 'Rahul Verma',
@@ -267,8 +265,7 @@ import requests
 response = requests.post(
     "{{API_URL}}/v1/auth/business-employees",
     headers={
-        "Authorization": "Bearer YOUR_API_KEY",
-        "Origin": "https://app.example.com",
+        "Authorization": "Bearer YOUR_SESSION_TOKEN",
     },
     json={
         "name": "Rahul Verma",
@@ -296,12 +293,12 @@ if not data["emailSent"]:
 4. **The response always contains the link.** `emailSent` tells you whether the email actually went out. When it is `false` (for example a bounced address), copy `inviteLink` from the response and send it through any channel you like; it is the same link the email would have carried.
 
 > [!TIP]
-> The host in `inviteLink` is taken from the `Origin` (or `Referer`) header of your request, falling back to the API host. Send `Origin: https://<your dashboard host>` with the request so the link opens the dashboard the member will use.
+> The host in `inviteLink` is the dashboard the request came from (an allow-listed dashboard origin); any other origin falls back to the default dashboard host.
 
 Other behaviour worth knowing:
 
 - **Inviting an email that is still pending** does not create a duplicate. The name, phone and role are refreshed, the business access is replaced, and the invitation is sent again. The message reads `Invitation re-sent to agent@example.com.`
-- **Default business access** is every business in your organisation. If the caller is a signed-in team member who is not an `OWNER`, the new member's access is additionally capped to the businesses the caller can open; a request that would leave the invitee with no business at all is rejected. An API key has no such cap.
+- **Default business access** is every business in your organisation. If the caller is not an `OWNER`, the new member's access is additionally capped to the businesses the caller can open; a request that would leave the invitee with no business at all is rejected.
 - **Role names** must already exist in your organisation. Roles cannot be created by this endpoint (see [Roles and Permissions](#roles-and-permissions)).
 
 #### Invite Errors
@@ -406,7 +403,7 @@ This endpoint is **self-only**: it returns the record of the person making the r
 method: PUT
 endpoint: /v1/auth/business-employees/:emailId
 title: Change a Member's Role
-description: Assign a different role to a team member. Only the role changes; name, phone and business access stay as they are. Requires `employeeManagement`.
+description: Assign a different role to a team member. Only the role changes; name, phone and business access stay as they are. Requires `employeeManagement`. Dashboard session only.
 
 ## Path Parameters
 
@@ -481,7 +478,7 @@ description: Assign a different role to a team member. Only the role changes; na
 
 ```bash
 curl -X PUT "{{API_URL}}/v1/auth/business-employees/agent%40example.com" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{ "role": "MANAGER" }'
 ```
@@ -504,7 +501,7 @@ curl -X PUT "{{API_URL}}/v1/auth/business-employees/agent%40example.com" \
 method: DELETE
 endpoint: /v1/auth/business-employees/:emailId
 title: Remove a Team Member
-description: Remove a member from your organisation. An active member is soft-deleted and can be restored by an OWNER; a pending invitation is cancelled outright. Requires `employeeManagement`.
+description: Remove a member from your organisation. An active member is soft-deleted and can be restored by an OWNER; a pending invitation is cancelled outright. Requires `employeeManagement`. Dashboard session only.
 
 ## Path Parameters
 
@@ -539,7 +536,7 @@ description: Remove a member from your organisation. An active member is soft-de
 
 ```bash
 curl -X DELETE "{{API_URL}}/v1/auth/business-employees/agent%40example.com" \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN"
 ```
 
 What happens depends on the member's status:
@@ -614,7 +611,7 @@ Only a signed-in member with the `OWNER` role can call this. An API key, or a me
 method: POST
 endpoint: /v1/auth/business-employees/:emailId/resend-invite
 title: Resend an Invitation
-description: Email the invitation link again to a member who has not accepted yet. Requires `employeeManagement`. No request body.
+description: Email the invitation link again to a member who has not accepted yet. Requires `employeeManagement`. No request body. Dashboard session only.
 
 ## Path Parameters
 
@@ -636,8 +633,7 @@ description: Email the invitation link again to a member who has not accepted ye
 
 ```bash
 curl -X POST "{{API_URL}}/v1/auth/business-employees/agent%40example.com/resend-invite" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Origin: https://app.example.com"
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
 ```
 
 If the original link is still valid it is sent again unchanged, keeping its original 7-day expiry. If it has expired, a fresh link valid for 7 days is issued and the old one stays dead. As with the invite endpoint, `inviteLink` is always returned and `emailSent` tells you whether the email went out.
@@ -657,7 +653,7 @@ If the original link is still valid it is sent again unchanged, keeping its orig
 method: PUT
 endpoint: /v1/auth/business-employees/toggle-status
 title: Switch a Member On or Off
-description: Set a member's `isActive` flag. Off means automatic chat assignment skips them; their login and role are unchanged.
+description: Set a member's `isActive` flag. Off means automatic chat assignment skips them; their login and role are unchanged. Dashboard session only.
 
 ## Body Parameters
 
@@ -687,7 +683,7 @@ description: Set a member's `isActive` flag. Off means automatic chat assignment
 
 ```bash
 curl -X PUT "{{API_URL}}/v1/auth/business-employees/toggle-status" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{ "email": "agent@example.com", "isActive": false }'
 ```
@@ -872,7 +868,7 @@ When automatic chat assignment is on, every incoming WhatsApp message that start
 method: PUT
 endpoint: /v1/auth/business-employees/auto-chat-assign
 title: Configure Automatic Chat Assignment
-description: Turn automatic assignment of unassigned incoming chats on or off for this business and choose how the member is picked. Requires `automaticChatAssignment`.
+description: Turn automatic assignment of unassigned incoming chats on or off for this business and choose how the member is picked. Requires `automaticChatAssignment`. Dashboard session only.
 
 ## Body Parameters
 
@@ -902,7 +898,7 @@ description: Turn automatic assignment of unassigned incoming chats on or off fo
 
 ```bash
 curl -X PUT "{{API_URL}}/v1/auth/business-employees/auto-chat-assign" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{ "isAutomaticChatAssignment": true, "method": "forActiveEmployees" }'
 ```
@@ -932,7 +928,7 @@ Quick replies are canned messages a team member can insert in the inbox by typin
 method: PUT
 endpoint: /v1/auth/business-employees/quick-replies
 title: Set a Member's Quick Replies
-description: Replace the full list of quick replies for one team member. Requires `quickReplyManagement`.
+description: Replace the full list of quick replies for one team member. Requires `quickReplyManagement`. Dashboard session only.
 
 ## Body Parameters
 
@@ -1006,7 +1002,7 @@ description: Replace the full list of quick replies for one team member. Require
 
 ```bash
 curl -X PUT "{{API_URL}}/v1/auth/business-employees/quick-replies" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "agent@example.com",
@@ -1171,7 +1167,7 @@ No role permission is required to read roles. `businessId` is the business the r
 method: POST
 endpoint: /v1/role-permission
 title: Update Roles
-description: Change permissions on one or more existing roles. Send only the roles and keys you want to change; everything else is left as it is. Returns the full updated role list. Requires `permissionManagement`.
+description: Change permissions on one or more existing roles. Send only the roles and keys you want to change; everything else is left as it is. Returns the full updated role list. Requires `permissionManagement`. Dashboard session only.
 
 ## Body Parameters
 
@@ -1238,7 +1234,7 @@ description: Change permissions on one or more existing roles. Send only the rol
 
 ```bash
 curl -X POST "{{API_URL}}/v1/role-permission" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -d '[
     { "role": "OPERATOR", "viewAllChat": false, "contactNumberMasking": true },
