@@ -20,7 +20,6 @@ All endpoints on this page take an API key in the `Authorization: Bearer <API ke
 | GET    | `/v1/messages/mark-read-msg/:clientWaNumber` | `messages:read`  | Mark the latest inbound message from a contact as read |
 | GET    | `/v1/messages/flow-id/:flowId`               | `messages:read`  | Responses submitted through a WhatsApp Flow            |
 | PUT    | `/v1/messages/:wamid`                        | `messages:write` | Attach a recording to a call message                   |
-| GET    | `/v1/messages/fetch-media`                   | `messages:read`  | Download inbound media straight from WhatsApp          |
 | GET    | `/v1/messages/presigned-url`                 | `messages:read`  | Get an upload URL for media you want to send           |
 | POST   | `/v1/business/typing-indicator`              | Full access      | Show a typing indicator to a contact                   |
 
@@ -1316,10 +1315,7 @@ curl "{{API_URL}}/v1/messages?wamid=wamid.HBgLOTE5ODc..." \
 > **Why you might get a 404 for media messages:** When a customer sends a media message (image, document, video, etc.), the platform forwards the webhook to your endpoint **immediately**. However, downloading the media from WhatsApp and uploading it to our CDN takes a few seconds. So if you call this endpoint right after receiving the webhook, you may get a **404 Not Found** because the message hasn't been saved yet, or the `awsLink` field may be empty while the upload is still in progress.
 
 > [!TIP]
-> **Option 1 — Instant access (recommended):** Use `GET /v1/messages/fetch-media?url=<encoded_url>` to download the file directly from WhatsApp. The webhook already contains the media URL (see the full webhook example below in the Fetch Media section). No waiting needed.
-
-> [!INFO]
-> **Option 2 — Permanent public URL:** Retry this endpoint after 3-5 seconds. Once the media has been processed, the `awsLink` field will contain a permanent CDN URL that never expires — useful for storing or sharing the link.
+> Retry this endpoint after 3-5 seconds. Once the media has been processed, the `awsLink` field contains a permanent CDN URL that never expires, so you can store or share it.
 
 ---
 
@@ -1485,179 +1481,6 @@ curl -X PUT "{{API_URL}}/v1/messages/wamid.HBgLOTE5ODc2NTQzMjEw..." \
     "name": "call-recording-2026-01-15.webm"
   }'
 ```
-
----
-
-## Fetch Media from WhatsApp
-
-:::api
-method: GET
-endpoint: /v1/messages/fetch-media?url=xxx
-title: Fetch Media from WhatsApp
-description: Download a media file directly from WhatsApp's servers. Use this when you receive a media message via webhook and need the file immediately, without waiting for it to be processed and uploaded to our CDN.
-
-## Query Parameters
-
-- url: string [required] - The media URL from the webhook payload, **URL-encoded** using `encodeURIComponent()`. This is the `url` field inside the media object (e.g., `message.image.url`, `message.document.url`, etc.)
-
-```request
-GET /v1/messages/fetch-media?url=https%3A%2F%2Flookaside.fbsbx.com%2Fwhatsapp_business%2Fattachments%2F%3Fmid%3DMEDIA_ID%26source%3Dwebhook%26ext%3DEXPIRY%26hash%3DHASH_VALUE
-```
-
-## Response
-
-The response is the **raw binary file** with the appropriate `Content-Type` header (e.g., `image/jpeg`, `application/pdf`, `video/mp4`). This is **not a JSON response** — it returns the file directly.
-
-:::
-
-### When to use this
-
-When WhatsApp sends a media message webhook, the payload includes a temporary media URL like:
-
-```
-https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=1428354048768552&source=webhook&ext=...
-```
-
-This URL **requires WhatsApp authentication** to access — you cannot download it directly. This endpoint acts as a proxy: you pass the URL as a query parameter, and we fetch the file using your business's WhatsApp access token.
-
-| HTTP status | Body                                               | Cause                                                                                      |
-| ----------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 400         | `{ "error": "Invalid URL" }`                       | `url` is missing or not a valid URL                                                        |
-| 403         | `{ "error": "graph.facebook.com is not allowed" }` | Only media attachment URLs are accepted; Graph API URLs are refused                        |
-| other       | WhatsApp's error body                              | WhatsApp refused the download (for example, the URL expired). Its status is passed through |
-
-### Fetch Media Example
-
-```bash
-curl "{{API_URL}}/v1/messages/fetch-media?url=https%3A%2F%2Flookaside.fbsbx.com%2Fwhatsapp_business%2Fattachments%2F%3Fmid%3DMEDIA_ID%26source%3Dwebhook%26ext%3DEXPIRY%26hash%3DHASH_VALUE" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  --output invoice.pdf
-```
-
-### How to use Fetch Media
-
-**Step 1.** When a customer sends a media message, you receive a webhook like this. The media URL you need is inside the message object:
-
-**Image webhook:**
-
-```json
-{
-  "object": "whatsapp_business_account",
-  "entry": [
-    {
-      "id": "YOUR_BUSINESS_ACCOUNT_ID",
-      "changes": [
-        {
-          "value": {
-            "messaging_product": "whatsapp",
-            "metadata": {
-              "display_phone_number": "919876543210",
-              "phone_number_id": "PHONE_NUMBER_ID"
-            },
-            "contacts": [
-              {
-                "profile": { "name": "Customer Name" },
-                "wa_id": "919123456789"
-              }
-            ],
-            "messages": [
-              {
-                "from": "919123456789",
-                "id": "wamid.ABCDEFxxxxxxxx",
-                "timestamp": "1700000000",
-                "type": "image",
-                "image": {
-                  "mime_type": "image/jpeg",
-                  "sha256": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
-                  "id": "MEDIA_ID",
-                  "url": "https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=MEDIA_ID&source=webhook&ext=EXPIRY&hash=HASH_VALUE"
-                }
-              }
-            ]
-          },
-          "field": "messages"
-        }
-      ]
-    }
-  ]
-}
-```
-
-**Document webhook:**
-
-```json
-{
-  "object": "whatsapp_business_account",
-  "entry": [
-    {
-      "id": "YOUR_BUSINESS_ACCOUNT_ID",
-      "changes": [
-        {
-          "value": {
-            "messaging_product": "whatsapp",
-            "metadata": {
-              "display_phone_number": "919876543210",
-              "phone_number_id": "PHONE_NUMBER_ID"
-            },
-            "contacts": [
-              {
-                "profile": { "name": "Customer Name" },
-                "wa_id": "919123456789"
-              }
-            ],
-            "messages": [
-              {
-                "from": "919123456789",
-                "id": "wamid.ABCDEFxxxxxxxx",
-                "timestamp": "1700000000",
-                "type": "document",
-                "document": {
-                  "filename": "Invoice.pdf",
-                  "mime_type": "application/pdf",
-                  "sha256": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
-                  "id": "MEDIA_ID",
-                  "url": "https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=MEDIA_ID&source=webhook&ext=EXPIRY&hash=HASH_VALUE"
-                }
-              }
-            ]
-          },
-          "field": "messages"
-        }
-      ]
-    }
-  ]
-}
-```
-
-The media URL is at `entry[0].changes[0].value.messages[0].<type>.url` where `<type>` is `image`, `document`, `video`, `audio`, or `sticker`. Each media type has `id`, `mime_type`, `sha256`, and `url` fields. `document` also includes `filename`.
-
-**Step 2.** URL-encode the media URL using `encodeURIComponent()` and pass it as a query parameter:
-
-```javascript
-// JavaScript example
-const mediaUrl = webhook.entry[0].changes[0].value.messages[0].image.url;
-const response = await fetch(
-  `{{API_URL}}/v1/messages/fetch-media?url=${encodeURIComponent(mediaUrl)}`,
-  { headers: { Authorization: 'Bearer YOUR_API_KEY' } },
-);
-```
-
-```
-// cURL example
-GET /v1/messages/fetch-media?url=https%3A%2F%2Flookaside.fbsbx.com%2Fwhatsapp_business%2Fattachments%2F%3Fmid%3DMEDIA_ID%26source%3Dwebhook%26ext%3DEXPIRY%26hash%3DHASH_VALUE
-Authorization: Bearer YOUR_API_KEY
-```
-
-**Step 3.** The response will be the raw binary file with the correct `Content-Type` header. Save it to disk or process it as needed.
-
-> [!NOTE]
-> The webhook media URL is **temporary** (valid for ~5 minutes). Make sure to download the media soon after receiving the webhook. If the URL has expired, you can use the `Get Message by ID` endpoint to get the permanent `awsLink` from our CDN instead.
-
-> [!TIP]
-> **Choosing between this endpoint and `awsLink`:**
->
-> - Use **Fetch Media** when you need the file **immediately** after receiving the webhook (within seconds).
-> - Use **Get Message by ID** (`awsLink` field) when you're okay waiting a few seconds for our CDN-hosted permanent URL. The `awsLink` is a permanent link that never expires.
 
 ---
 

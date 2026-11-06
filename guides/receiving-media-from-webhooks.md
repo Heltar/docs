@@ -66,10 +66,6 @@ When a customer sends media, the webhook payload includes a media object with me
 
 ## How to Get the Media File
 
-There are two approaches to download the actual file:
-
-### Approach 1: Fetch by Message ID
-
 Use the WhatsApp message ID (`wamid`) from the webhook to fetch the full message via the Heltar API. The response includes a permanent CDN link to the file.
 
 ```
@@ -92,10 +88,10 @@ async function getMediaUrl(wamid, maxRetries = 3) {
       `${API_URL}/v1/messages?wamid=${encodeURIComponent(wamid)}`,
       { headers: { Authorization: `Bearer ${apiKey}` } },
     );
-    const data = await response.json();
+    const body = await response.json();
 
-    if (data.awsLink) {
-      return data.awsLink; // Permanent CDN URL
+    if (body.data?.awsLink) {
+      return body.data.awsLink; // Permanent CDN URL
     }
 
     // Media upload takes a few seconds, retry
@@ -116,10 +112,10 @@ def get_media_url(wamid, max_retries=3):
             params={"wamid": wamid},
             headers={"Authorization": f"Bearer {api_key}"},
         )
-        data = response.json()
+        message = response.json().get("data") or {}
 
-        if data.get("awsLink"):
-            return data["awsLink"]  # Permanent CDN URL
+        if message.get("awsLink"):
+            return message["awsLink"]  # Permanent CDN URL
 
         # Media upload takes a few seconds, retry
         time.sleep(5)
@@ -133,18 +129,21 @@ def get_media_url(wamid, max_retries=3):
 
 ```json
 {
-  "wamid": "wamid.HBgLOTE5ODc...",
-  "clientWaNumber": "919876543210",
-  "status": "received",
-  "timestamp": "2026-01-15T10:30:00.000Z",
-  "type": "media",
-  "name": "photo.jpg",
-  "caption": "Check this out",
-  "mimeType": "image/jpeg",
-  "size": 58386,
-  "sha256": "FghN0jxjw+skZm+...",
-  "awsLink": "https://cdn.heltar.com/media/abc123.jpg",
-  "dimensions": { "width": 1080, "height": 1920 }
+  "message": "Successfully retrieved message",
+  "data": {
+    "wamid": "wamid.HBgLOTE5ODc...",
+    "clientWaNumber": "919876543210",
+    "status": "received",
+    "timestamp": "2026-01-15T10:30:00.000Z",
+    "type": "media",
+    "name": "photo.jpg",
+    "caption": "Check this out",
+    "mimeType": "image/jpeg",
+    "size": 58386,
+    "sha256": "FghN0jxjw+skZm+...",
+    "awsLink": "https://cdn.heltar.com/media/abc123.jpg",
+    "dimensions": { "width": 1080, "height": 1920 }
+  }
 }
 ```
 
@@ -152,65 +151,6 @@ The `awsLink` is a **permanent URL** that you can store, cache, or share.
 
 > [!IMPORTANT]
 > Media takes a few seconds to download and upload to our CDN after the webhook fires. If `awsLink` is empty, retry after 5 seconds. 2-3 retries at 5-second intervals is usually enough.
-
----
-
-### Approach 2: Use the Temporary URL from the Webhook
-
-Meta includes a temporary direct download URL in the webhook payload. You can use this URL with the fetch-media endpoint to download the file immediately:
-
-```
-GET {{API_URL}}/v1/messages/fetch-media?url=<encoded_url>
-```
-
-:::code-group
-
-```bash
-# URL-encode the media URL from the webhook
-MEDIA_URL="https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=MEDIA_ID..."
-curl -X GET "{{API_URL}}/v1/messages/fetch-media?url=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$MEDIA_URL'))")" \
-  -H 'Authorization: Bearer YOUR_API_KEY' \
-  --output downloaded_file.jpg
-```
-
-```javascript
-const mediaUrl = webhook.entry[0].changes[0].value.messages[0].image.url;
-
-const response = await fetch(
-  `${API_URL}/v1/messages/fetch-media?url=${encodeURIComponent(mediaUrl)}`,
-  { headers: { Authorization: `Bearer ${apiKey}` } },
-);
-const blob = await response.blob();
-```
-
-```python
-import requests
-
-media_url = webhook["entry"][0]["changes"][0]["value"]["messages"][0]["image"]["url"]
-
-response = requests.get(
-    f"{API_URL}/v1/messages/fetch-media",
-    params={"url": media_url},
-    headers={"Authorization": f"Bearer {api_key}"},
-)
-file_bytes = response.content
-```
-
-:::
-
-This endpoint returns the **raw binary file** (not JSON) with the correct `Content-Type` header.
-
-> [!WARNING]
-> The temporary media URL from the webhook expires in approximately **5 minutes**. If you need the file after that window, use Approach 1 (fetch by message ID) instead.
-
----
-
-## Comparison
-
-| Approach                        | Pros                                                           | Cons                                           |
-| ------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- |
-| **Fetch by Message ID**         | Permanent URL, cacheable, includes metadata (dimensions, size) | Needs 2-3 retries with 5s delay                |
-| **Temporary URL (fetch-media)** | Instant file access, no waiting                                | URL expires in ~5 min, returns raw binary only |
 
 ---
 
