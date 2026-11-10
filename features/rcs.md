@@ -1,13 +1,16 @@
 ---
 title: RCS Messaging
-description: Send and receive Rich Communication Services (RCS) messages over Route Mobile + Jio or directly through Google RCS for Business, alongside WhatsApp
+description: Send and receive Rich Communication Services (RCS) messages over Route Mobile + Jio or directly through Google RCS for Business, on a business of its own
 icon: MessageSquare
 order: 11
 ---
 
 # RCS Messaging
 
-Add **Rich Communication Services (RCS)** as a parallel channel to WhatsApp on the same Heltar account. Customers reachable on RCS show up as their own conversation thread in the inbox — distinct from any WhatsApp conversation with the same phone number — so agents always know which channel they're replying on.
+Add **Rich Communication Services (RCS)** to your Heltar account as a business of its own. A business messages on one channel — WhatsApp or RCS — so an RCS business has its own inbox, contacts, templates and campaigns, and agents always know which channel they're replying on.
+
+> [!IMPORTANT]
+> **One channel per business.** An RCS agent can only be added to a business that has no WhatsApp number, and a WhatsApp number can only be added to a business that has no RCS agent. To use both, keep two businesses in the same organisation and switch between them. A business that already had both before this rule keeps working as it is.
 
 Heltar supports two RCS gateways. Pick one per business:
 
@@ -26,6 +29,8 @@ Either way your existing send and receive flows (sync API, campaigns, templates,
 Three steps. **No new APIs to learn — your existing send code keeps working.**
 
 ### Step 1 — Add the RCS API key (once per business)
+
+Use a business that has no WhatsApp number (create a new one from **Switch Business → Add New Number** if you need to). Adding the first RCS key makes it an RCS business; deleting its last RCS key makes it empty again.
 
 **Option A — Route Mobile**
 
@@ -71,9 +76,9 @@ curl -X POST 'https://api.heltar.com/v1/api-keys' \
 
 Activating a Google RCS key deactivates any Route Mobile RCS key on the same business (and vice versa) — one gateway per business.
 
-### Step 2 — Send messages by appending `@rcs` to the phone number
+### Step 2 — Send messages
 
-Same `POST /v1/messages/send` endpoint you already use for WhatsApp — just stamp `@rcs` on the recipient:
+Same `POST /v1/messages/send` endpoint you already use for WhatsApp. An RCS business sends every plain phone number over RCS, so `919999999999` and `919999999999@rcs` reach the same RCS contact:
 
 ```bash
 curl -X POST 'https://api.heltar.com/v1/messages/send' \
@@ -88,7 +93,10 @@ curl -X POST 'https://api.heltar.com/v1/messages/send' \
   }'
 ```
 
-The platform routes the call to your gateway, the message lands on the customer's RCS-capable handset, and shows up in the inbox under a separate RCS thread (with a green **RCS** badge).
+The platform routes the call to your gateway, the message lands on the customer's RCS-capable handset, and shows up in the inbox as an RCS thread (with an **RCS** badge).
+
+> [!NOTE]
+> On a business that has both WhatsApp and RCS from before the one-channel rule, a plain number still goes to WhatsApp; add `@rcs` to send it over RCS.
 
 ### Step 3 — Point your gateway's callbacks at our webhook
 
@@ -125,9 +133,11 @@ Both are **single global URLs** — no per-business setup. Inbound replies, deli
 
 ## How RCS sits next to WhatsApp
 
-A customer reachable on **both** WhatsApp and RCS shows up as **two threads** in the inbox — same name, same phone, but with the RCS thread carrying a green **RCS** badge so agents can tell them apart at a glance.
+WhatsApp and RCS live in separate businesses of the same organisation. A customer you reach on both shows up once in each business — the WhatsApp conversation in the WhatsApp business, the RCS conversation in the RCS business — and the business switcher shows which channel each business is on.
 
-You don't have to do anything special to "create" an RCS contact. The first time you send a message to `<phone>@rcs`, the conversation appears automatically. Bulk-importing works the same way: any row in `POST /v1/clients` whose `clientWaNumber` ends with `@rcs` is created as an RCS contact.
+You don't have to do anything special to "create" an RCS contact. The first time an RCS business sends a message to a phone number, the conversation appears automatically. Bulk-importing works the same way.
+
+In an RCS business the dashboard shows only what applies to RCS: its own template manager, and none of the WhatsApp-only settings (WhatsApp profile, catalog, payments, Meta analytics).
 
 ---
 
@@ -344,6 +354,7 @@ Inbound chip clicks come back as button replies, so chatbot rules that match on 
 
 ## Limits and current trade-offs
 
+- **One channel per business** — an RCS key is refused on a business with a WhatsApp number, and a WhatsApp number is refused on an RCS business (`409 Conflict`).
 - **One active RCS key per business** — re-submitting the API call replaces the previous key transparently.
 - **`botName` / `agentId` is globally unique** across all Heltar businesses. Trying to register an agent name that another business already owns returns `409 Conflict` (matches the reality that a gateway won't let two clients share an agent anyway).
 - **Carousel intro text isn't surfaced** — neither gateway's carousel format accepts a body text alongside the cards. Send a separate text message before the carousel if you need an intro.
@@ -353,6 +364,12 @@ Inbound chip clicks come back as button replies, so chatbot rules that match on 
 ---
 
 ## Troubleshooting
+
+**`409 Conflict — This business is already set up for WhatsApp. Use a separate business for RCS.`**
+The business you are adding the RCS key to already has a WhatsApp number (or is on the WhatsApp sandbox). Create or pick another business in your organisation and add the key there.
+
+**`409 Conflict — This business is already set up for RCS. Use a separate business for WhatsApp.`**
+The business has an RCS agent. Connect the WhatsApp number to a different business, or delete the RCS key first if this business should move to WhatsApp.
 
 **`409 Conflict — RCS bot name 'X' is already registered to another business`**
 Another Heltar tenant has already saved an active key with the same `botName`. Confirm with Route Mobile that the bot really belongs to your account and ask the other tenant to remove their key.
