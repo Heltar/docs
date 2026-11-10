@@ -187,6 +187,59 @@ What the customer sees depends on the template shape:
 
 Reply chips (`QUICK_REPLY`), URL buttons, and phone-call buttons all map across automatically. Static buttons (those without `{{N}}` placeholders) come from the approved template definition so they aren't dropped.
 
+### RCS templates (your own, no approval step)
+
+An RCS business keeps its own templates in Heltar, on the same template endpoints a WhatsApp business uses. They are written in the RCS-native message shape (`contentMessage`: `text`, `contentInfo` or `richCard`, plus `suggestions`). Put `{{1}}`, `{{2}}`, … in any string — text, card title or description, chip label, URL, media `fileUrl`.
+
+| Method   | Path                                   | What it does                                 |
+| -------- | -------------------------------------- | -------------------------------------------- |
+| `GET`    | `/v1/templates`                        | List the business's templates                |
+| `POST`   | `/v1/templates`                        | Create one                                   |
+| `GET`    | `/v1/templates/{name}?templateLang=en` | Fetch one                                    |
+| `POST`   | `/v1/templates/{name}`                 | Replace its content (`language` in the body) |
+| `DELETE` | `/v1/templates/{name}?templateLang=en` | Delete it                                    |
+
+A template is unique per business by `name` + `language` (`language` defaults to `en`). `messageTrafficType` is `PROMOTION`, `TRANSACTION` (default) or `AUTHENTICATION`.
+
+```json
+{
+  "name": "order_update",
+  "language": "en",
+  "messageTrafficType": "TRANSACTION",
+  "contentMessage": {
+    "richCard": {
+      "standaloneCard": {
+        "cardOrientation": "VERTICAL",
+        "cardContent": {
+          "title": "Hi {{1}}",
+          "description": "Order {{2}} is out for delivery",
+          "media": {
+            "height": "MEDIUM",
+            "contentInfo": { "fileUrl": "https://example.com/box.jpg" }
+          },
+          "suggestions": [
+            {
+              "action": {
+                "text": "Track order",
+                "postbackData": "track_{{2}}",
+                "openUrlAction": { "url": "https://example.com/t/{{2}}" }
+              }
+            },
+            { "reply": { "text": "Talk to us", "postbackData": "support" } }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+Supported suggestions: `reply`, and `action` with one of `openUrlAction`, `dialAction`, `viewLocationAction`, `createCalendarEventAction`. A carousel is `richCard.carouselCard` with 2–10 `cardContents`.
+
+Send it like any template — `messageType: "template"`, `templateName`, `languageCode`, and the values in the `body` parameters, in order (`{{1}}` is the first). When a number ends in `@rcs`, your RCS template with that name and language is used; if there is none, the WhatsApp template of that name is rendered as described above.
+
+On a Route Mobile agent, message-level `suggestions` are delivered on text messages only; put chips inside the card for rich cards.
+
 ### Interactive (reply chips, URL chips, location, calendar)
 
 Use the same `messageType: 'interactive'` shape. RCS supports two extensions on top of WhatsApp's reply chips — **location** and **calendar** chips — accepted on the same payload:
