@@ -44,7 +44,7 @@ Authorization: Bearer YOUR_API_KEY
 `GET` requests need the `clients:read` scope; every other method needs `clients:write`. A key without the scope receives `403 Forbidden`. See [Authentication](/docs/api/authentication) for full setup instructions.
 
 > [!NOTE]
-> `clientWaNumber` accepts a phone number with country code (`919876543210`). A `+`, spaces, or dashes are stripped before lookup, so `+91 98765-43210` resolves to the same contact. The same field also accepts a WhatsApp user ID for a contact who hides their phone number (`BD.1068713429041673`), an RCS thread (`919876543210@rcs`), a web-chat visitor (`<visitorId>@web`), or a WhatsApp group ID.
+> `clientWaNumber` accepts a phone number with country code (`919876543210`). A `+`, spaces, or dashes are stripped before lookup, so `+91 98765-43210` resolves to the same contact. The same field also accepts a WhatsApp user ID for a contact who hides their phone number (`BD.1068713429041673`), a web-chat visitor (`<visitorId>@web`), or a WhatsApp group ID.
 
 ---
 
@@ -1013,8 +1013,8 @@ description: Returns the person behind a contact and every channel thread linked
         "latestMessageTimestamp": "2026-09-09T12:30:00.000Z"
       },
       {
-        "clientWaNumber": "919876543210@rcs",
-        "channel": "rcs",
+        "clientWaNumber": "a1b2c3d4@web",
+        "channel": "web",
         "username": "John Doe",
         "latestMessageTimestamp": null
       }

@@ -78,7 +78,7 @@ Activating a Google RCS key deactivates any Route Mobile RCS key on the same bus
 
 ### Step 2 — Send messages
 
-Same `POST /v1/messages/send` endpoint you already use for WhatsApp. An RCS business sends every plain phone number over RCS, so `919999999999` and `919999999999@rcs` reach the same RCS contact:
+Same `POST /v1/messages/send` endpoint you already use for WhatsApp. An RCS business sends every phone number over RCS:
 
 ```bash
 curl -X POST 'https://api.heltar.com/v1/messages/send' \
@@ -86,7 +86,7 @@ curl -X POST 'https://api.heltar.com/v1/messages/send' \
   -H 'Content-Type: application/json' \
   -d '{
     "messages": [{
-      "clientWaNumber": "919999999999@rcs",
+      "clientWaNumber": "919999999999",
       "messageType": "text",
       "message": "Hi from RCS!"
     }]
@@ -96,7 +96,7 @@ curl -X POST 'https://api.heltar.com/v1/messages/send' \
 The platform routes the call to your gateway, the message lands on the customer's RCS-capable handset, and shows up in the inbox as an RCS thread (with an **RCS** badge).
 
 > [!NOTE]
-> On a business that has both WhatsApp and RCS from before the one-channel rule, a plain number still goes to WhatsApp; add `@rcs` to send it over RCS.
+> A number written as `919999999999@rcs` is still accepted on an RCS business and reaches the same contact. Any other business answers it with an error.
 
 ### Step 3 — Point your gateway's callbacks at our webhook
 
@@ -151,7 +151,7 @@ All examples below use the same `POST /v1/messages/send` endpoint you use for Wh
 {
   "messages": [
     {
-      "clientWaNumber": "919999999999@rcs",
+      "clientWaNumber": "919999999999",
       "messageType": "text",
       "message": "Your order has been shipped."
     }
@@ -167,7 +167,7 @@ Heltar renders your approved template body (substituting `{{1}}`, `{{2}}`, …) 
 {
   "messages": [
     {
-      "clientWaNumber": "919999999999@rcs",
+      "clientWaNumber": "919999999999",
       "messageType": "template",
       "templateName": "order_confirmation",
       "languageCode": "en_US",
@@ -246,7 +246,7 @@ A template is unique per business by `name` + `language` (`language` defaults to
 
 Supported suggestions: `reply`, and `action` with one of `openUrlAction`, `dialAction`, `viewLocationAction`, `createCalendarEventAction`. A carousel is `richCard.carouselCard` with 2–10 `cardContents`.
 
-Send it like any template — `messageType: "template"`, `templateName`, `languageCode`, and the values in the `body` parameters, in order (`{{1}}` is the first). When a number ends in `@rcs`, your RCS template with that name and language is used; if there is none, the WhatsApp template of that name is rendered as described above.
+Send it like any template — `messageType: "template"`, `templateName`, `languageCode`, and the values in the `body` parameters, in order (`{{1}}` is the first). On an RCS business, your RCS template with that name and language is used; if there is none, the WhatsApp template of that name is rendered as described above.
 
 On a Route Mobile agent, message-level `suggestions` are delivered on text messages only; put chips inside the card for rich cards.
 
@@ -257,7 +257,7 @@ Use the same `messageType: 'interactive'` shape. RCS supports two extensions on 
 ```json
 {
   "messageType": "interactive",
-  "clientWaNumber": "919999999999@rcs",
+  "clientWaNumber": "919999999999",
   "interactive": {
     "type": "button",
     "body": { "text": "Pick a slot" },
@@ -278,7 +278,7 @@ Use the same `messageType: 'interactive'` shape. RCS supports two extensions on 
 }
 ```
 
-Sending the same payload to a regular phone (no `@rcs`) routes through WhatsApp instead — WhatsApp rejects the calendar chip but accepts the reply chip. Both cases work without any code branches on your side.
+Sending the same payload from a WhatsApp business goes over WhatsApp instead — WhatsApp rejects the calendar chip but accepts the reply chip. Both cases work without any code branches on your side.
 
 ### Media
 
@@ -286,7 +286,7 @@ Sending the same payload to a regular phone (no `@rcs`) routes through WhatsApp 
 {
   "messages": [
     {
-      "clientWaNumber": "919999999999@rcs",
+      "clientWaNumber": "919999999999",
       "messageType": "media",
       "mediaType": "image",
       "url": "https://your-cdn.com/banner.jpg",
@@ -306,7 +306,7 @@ Same `messageType: 'location'` shape you already use for WhatsApp. Neither gatew
 {
   "messages": [
     {
-      "clientWaNumber": "919999999999@rcs",
+      "clientWaNumber": "919999999999",
       "messageType": "location",
       "location": {
         "latitude": 25.688562926103575,
