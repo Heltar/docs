@@ -16,7 +16,6 @@ Read the numbers behind the dashboard's analytics pages: daily engagement, per-t
 | `GET /v1/templates/template-details/:templateName/:date` | Every message sent with one template on one day, with status and failure reason |
 | `GET /v1/templates/conversation-analytics`               | Meta's conversation analytics for a business number                             |
 | `GET /v1/templates/template-analytics`                   | Meta's sent / delivered / read / clicked counts for chosen templates            |
-| `GET /v1/templates/pricing-analytics`                    | Meta's billable volume by country, category and pricing tier                    |
 | `GET /v1/templates/cost-analytics`                       | Messaging and AI cost for a period, matching your bill                          |
 | `GET /v1/templates/cost-analytics/templates`             | Estimated cost per template per day                                             |
 
@@ -440,78 +439,6 @@ curl -X GET "{{API_URL}}/v1/templates/template-analytics?startDateTimestamp=1785
 
 ---
 
-:::api
-method: GET
-endpoint: /v1/templates/pricing-analytics
-title: Pricing Analytics
-description: Meta's billable message volume (and cost, where Meta exposes it) by number, country, pricing category, pricing type and tier.
-
-## Query Parameters
-
-- startDateTimestamp: number [required] - Start of the range, Unix seconds
-- endDateTimestamp: number [required] - End of the range, Unix seconds
-- granularity: string [required] - Bucket size: `DAILY` or `MONTHLY`
-- org: string - Set to `true` to report on every business in your organisation instead of the current one
-
-## Response
-
-```response
-{
-  "message": "Successfully fetched pricing analytics!",
-  "data": {
-    "pricing_analytics": {
-      "data": [
-        {
-          "data_points": [
-            {
-              "start": 1785715200,
-              "end": 1785801600,
-              "phone_number": "919876543210",
-              "country": "IN",
-              "pricing_category": "MARKETING",
-              "pricing_type": "REGULAR",
-              "tier": "0:MAX",
-              "volume": 3900,
-              "cost": 3042
-            },
-            {
-              "start": 1785715200,
-              "end": 1785801600,
-              "phone_number": "919876543210",
-              "country": "IN",
-              "pricing_category": "SERVICE",
-              "pricing_type": "FREE_CUSTOMER_SERVICE",
-              "volume": 310
-            }
-          ]
-        }
-      ]
-    },
-    "id": "102290129340398"
-  }
-}
-```
-
-:::
-
-Only `pricing_type: "REGULAR"` rows are billable; other pricing types (such as `FREE_CUSTOMER_SERVICE` or `FREE_ENTRY_POINT`) are free volume. `tier` is present on billable rows only. `cost` is present only when Meta exposes it for your account (accounts billed directly by Meta); for accounts billed through a solution provider the response carries volume only.
-
-With `org=true`, `data_points` contains the rows of every business in your organisation, each tagged with a `business` field holding the business name, and `data.errors` lists any business whose numbers Meta could not be queried for (`{ "business": "Acme Retail", "phone": "919876543210" }`). Org-wide reporting requires access to every business in the organisation and returns `403` otherwise.
-
-> [!TIP]
-> `MONTHLY` buckets are only returned for complete calendar months. For the current month, or any partial month, use `DAILY`.
-
-This endpoint is only available on accounts with cost visibility enabled; it responds with `404` otherwise.
-
-### Pricing Analytics Example
-
-```bash
-curl -X GET "{{API_URL}}/v1/templates/pricing-analytics?startDateTimestamp=1785542400&endDateTimestamp=1785888000&granularity=DAILY" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
----
-
 ## Cost Analytics
 
 Cost analytics prices your messaging the same way your invoice does, so the totals here match your bill for the same period. Amounts are in INR. AI (chatbot model) usage is reported alongside it, priced in USD and converted at the rate shown in the response.
@@ -782,6 +709,6 @@ curl -X GET "{{API_URL}}/v1/templates/cost-analytics/templates?startDate=2026-08
 | 400    | A missing or malformed `startDate` / `endDate`, an `endDate` before `startDate`, a cost analytics period starting before `2026-07-01`, or a request that Meta rejected (Meta's error is in `errorRaw`)                        |
 | 401    | Missing, invalid, expired or revoked API key                                                                                                                                                                                  |
 | 403    | The API key does not cover this endpoint (`templates:read` for `/v1/templates/*`, a Full access or Read-only key for `/v1/analytics/*`), or org-wide scope was requested without access to every business in the organisation |
-| 404    | Pricing or cost analytics requested on an account without cost visibility enabled                                                                                                                                             |
+| 404    | Cost analytics requested on an account without cost visibility enabled                                                                                                                                                        |
 | 429    | Rate limit reached: API keys may call the analytics endpoints 60 times per 15 minutes per business. Wait for the `Retry-After` header before retrying                                                                         |
 | 503    | The analytics store is temporarily unavailable. Retry after a few seconds                                                                                                                                                     |
