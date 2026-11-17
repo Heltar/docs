@@ -1281,7 +1281,7 @@ description: Cap how many messages per second are sent to WhatsApp on behalf of 
 
 ## Body Parameters
 
-- metaApiCallsPerSecond: number [required] - Messages per second, from 1 to 1000. Defaults to 75 when never set
+- metaApiCallsPerSecond: number [required] - Messages per second, from 1 to 1000. Defaults to 75 when never set. Can't be raised above your number's WhatsApp limit (see below)
 
 ```request
 {
@@ -1306,7 +1306,15 @@ curl -X PUT "{{API_URL}}/v1/business/meta-api-calls-per-second" \
   -d '{ "metaApiCallsPerSecond": 200 }'
 ```
 
-Set this to match the throughput Meta has granted your number (see `throughput.level` in [Account Status](#account-status)). Setting it higher than your number's real limit does not make sends faster; WhatsApp will start rejecting messages with rate-limit errors.
+Set this to match the throughput Meta has granted your number (see `throughput.level` in [Account Status](#account-status)). A raise is checked against that limit, and refused with a `400` above it:
+
+| Your number                            | Highest rate |
+| -------------------------------------- | ------------ |
+| `throughput.level` is `STANDARD`       | 80           |
+| `throughput.level` is `HIGH`           | 1000         |
+| Also used in the WhatsApp Business app | 20           |
+
+Lowering the rate always works. If your number's throughput can't be read when you raise it, the raise is refused; try again later. WhatsApp counts incoming and outgoing messages together, so leave some room below the limit for replies.
 
 ---
 
