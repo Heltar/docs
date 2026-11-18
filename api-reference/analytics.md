@@ -183,7 +183,11 @@ description: Delivery funnel for every template, grouped by template, category a
       "failedCount": 20,
       "respondedCount": 210,
       "clickedCount": 388,
-      "clickedRespondedCount": 96
+      "clickedRespondedCount": 96,
+      "buttonClicks": [
+        { "text": "Yes", "count": 128 },
+        { "text": "No", "count": 41 }
+      ]
     },
     {
       "template_name": "order_confirmation",
@@ -220,6 +224,8 @@ The counts form a funnel, so each step includes everything further down it:
 | `respondedCount`        | The contact replied to the message (includes messages that were both clicked and replied to)   |
 | `clickedCount`          | The contact tapped a tracked link in the message (includes messages that were also replied to) |
 | `clickedRespondedCount` | Both clicked and replied to                                                                    |
+
+`buttonClicks` is present on a row when recipients tapped the template's quick reply buttons on campaign messages sent that day: one entry per button, most tapped first, with the number of recipients who tapped it. Only real button taps are counted, not typed replies with the same text. Rows without taps have no `buttonClicks`.
 
 There is no maximum range; a multi-month range works, it just takes longer.
 
@@ -259,7 +265,8 @@ description: Every message sent with one template on one day, with its current s
       "failure_reason": null,
       "timestamp": "2026-08-03 10:15:42",
       "sent_by_name": "Priya",
-      "response_text": "Yes, please confirm my order"
+      "response_text": "Yes, please confirm my order",
+      "buttonTaps": [{ "text": "Yes", "at": 1785751651000 }]
     },
     {
       "wamid": "wamid.HBgLOTE5ODc2NTQzMjExFQIAERgSMTVDQjQ0N0E5MEFCMzE5QjhCAA==",
@@ -287,6 +294,7 @@ Messages are returned most recent first. This is the drill-down behind a row of 
 | `timestamp`        | When the message was sent                                                                                                      |
 | `sent_by_name`     | Name of the team member who sent it, or `null` when no team member was attached to the send (for example the API or a chatbot) |
 | `response_text`    | The contact's reply to this message, or `null` if they have not replied                                                        |
+| `buttonTaps`       | Quick reply buttons the contact tapped on a campaign message, each with the tap time `at` (Unix milliseconds). Absent if none  |
 
 Returns `503` when the analytics store is temporarily unavailable.
 

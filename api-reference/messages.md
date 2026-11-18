@@ -1218,15 +1218,16 @@ description: Full-text search across every conversation on your account. Returns
 
 - `chats` lists contacts whose **phone number** contains the search words, one entry per contact (their most recent message). `messages` lists every message whose **text, caption, or file/template name** contains the words. Both are ordered newest first and each is capped at `limit`.
 - Every result carries the full message record: `wamid`, `clientWaNumber`, `phoneNumberId`, `businessId`, `timestamp`, `status`, `type`, `body`, `caption`, `name`, `size`, `mimeType`, `sha256`, `awsLink`, `templateName`, `langCode`, `category`, `campaignId`, `advertisementId`, `sentByName`, `failureReason`, `dimensions`, `interactive`, `context`, `reaction`, `metaData`, `integrations`, and `statusTime`. Fields that do not apply to a message type are empty or `null`. `timestamp` is a UTC `YYYY-MM-DD HH:MM:SS.mmm` string.
-- `newCursor` is the timestamp of the oldest result across both lists, or `null` when nothing matched. Pass it back as `cursor` to page further; stop when both lists come back empty.
+- `newCursor` is where the next page starts: pass it back as `cursor` to page further, and stop when it is `null`. It is normally the timestamp of the oldest result. On an account with a very large message history the search runs newest first over a limited time range per call, so a page can hold fewer results than `limit` (or none) and still return a `newCursor`; keep paging with it to reach older messages.
 - Contact names are not searched. Look up a contact by number with [Get Contact](/docs/api/contacts) instead.
 
-| HTTP status | `errorMessage`                                      | Cause                                                          |
-| ----------- | --------------------------------------------------- | -------------------------------------------------------------- |
-| 400         | `Invalid request data`                              | `searchQuery` or `limit` is missing                            |
-| 400         | `Invalid cursor format`                             | `cursor` could not be parsed as a date                         |
-| 400         | `Search query only contains unsupported characters` | Nothing was left to search after the reserved characters above |
-| 500         | `Internal Server Error`                             | Search is temporarily unavailable or timed out. Retry later    |
+| HTTP status | `errorMessage`                                                      | Cause                                                                               |
+| ----------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 400         | `Invalid request data`                                              | `searchQuery` or `limit` is missing                                                 |
+| 400         | `Invalid cursor format`                                             | `cursor` could not be parsed as a date                                              |
+| 400         | `Search query only contains unsupported characters`                 | Nothing was left to search after the reserved characters above                      |
+| 400         | `Message search timed out. Please refine your query and try again.` | The search was too broad to finish in time. Add more words or pass `clientWaNumber` |
+| 500         | `Internal Server Error`                                             | Search is temporarily unavailable. Retry later                                      |
 
 ### Search Messages Example
 
