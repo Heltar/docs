@@ -429,6 +429,10 @@ description: One campaign with its up-to-date delivery counts.
     "statsClicked": 71,
     "statsClickedResponded": 9,
     "statsFailure": 30,
+    "statsButtonClicks": [
+      { "text": "Yes", "count": 28 },
+      { "text": "No", "count": 9 }
+    ],
     "scheduleTime": "2026-08-03T10:00:00.000Z",
     "createdAt": "2026-08-03T10:00:00.000Z"
   }
@@ -438,6 +442,8 @@ description: One campaign with its up-to-date delivery counts.
 :::
 
 This is the cheapest way to poll a campaign's progress: it returns just the counts, not the recipient list. Counts are refreshed from the latest message statuses on every call for campaigns sent in the last 90 days; older campaigns return their final stored counts, which no longer change.
+
+`statsButtonClicks` lists the template's quick reply buttons that recipients tapped, most tapped first, with the number of recipients who tapped each one. It is `null` until the first tap is recorded, and is refreshed each time `GET /v1/campaigns/:id` is called for the campaign. `GET /v1/campaigns` returns the same field for every campaign.
 
 The `id` of a scheduled campaign that has not started yet is accepted too and returns status `schedule` with every recipient in `statsWait`.
 
@@ -470,10 +476,13 @@ description: The current delivery status of every recipient in a campaign.
   "data": {
     "messages": [
       {
-        "status": "read",
+        "status": "responded",
         "clientWaNumber": "919876543210",
         "failureReason": null,
-        "timestamp": "2026-08-03T10:00:04.000Z"
+        "timestamp": "2026-08-03T10:00:04.000Z",
+        "clickedButtons": [
+          { "text": "Yes", "clickedAt": "2026-08-03T10:07:31.000Z" }
+        ]
       },
       {
         "status": "failed",
@@ -481,6 +490,10 @@ description: The current delivery status of every recipient in a campaign.
         "failureReason": "(#131026) Message undeliverable",
         "timestamp": "2026-08-03T10:00:05.000Z"
       }
+    ],
+    "buttonClicks": [
+      { "text": "Yes", "count": 128 },
+      { "text": "No", "count": 41 }
     ]
   }
 }
@@ -489,6 +502,8 @@ description: The current delivery status of every recipient in a campaign.
 :::
 
 One entry per recipient, oldest send first. `status` is the recipient's current message status (see [Message Statuses](#message-statuses)); `failureReason` carries WhatsApp's error text for failed messages and is `null` otherwise; `timestamp` is when the message was sent.
+
+`buttonClicks` is present when the campaign's template has quick reply buttons: one entry per button with the number of recipients who tapped it. Only real button taps are counted, not typed replies with the same text. A recipient is counted once per button, so someone who taps two different buttons is counted in both. Buttons nobody tapped are listed with `count: 0`. A recipient who tapped carries `clickedButtons`: each button they tapped and when (`clickedAt`).
 
 For a scheduled campaign that has not started yet, every recipient is returned with status `waiting` and no `failureReason` or `timestamp`.
 
