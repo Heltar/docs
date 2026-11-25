@@ -170,7 +170,7 @@ print(data['success'], data['fail'])
 
 ## Message Types
 
-`messageType` must be one of `text`, `media`, `template`, `interactive`, `contacts`, or `location`. The value `sms` is reserved for a future channel and currently returns a 400 (`SMS channel is not yet available`).
+`messageType` must be one of `text`, `media`, `template`, `interactive`, `contacts`, `location`, or `reaction`. The value `sms` is reserved for a future channel and currently returns a 400 (`SMS channel is not yet available`).
 
 > [!TIP]
 > All message types share common fields: `clientWaNumber` (required), `messageType` (required), and `contextId` (optional - for replies).
@@ -191,7 +191,7 @@ print(data['success'], data['fail'])
 | `isPrivate`      | boolean | all                 | `true` saves the message as a private note in the inbox conversation. Nothing is sent to the contact.                                                                                                                                                                                   |
 | `integrations`   | array   | all                 | Custom data attached to the message and forwarded in webhooks. Each item is `{ "name": "metaCustomFieldHook", "customField": ... }`; see [Sending Custom Data](#sending-custom-data-with-templates). `name` may also be `webEngage`, `cleverTap`, or `moEngage` for those integrations. |
 
-`text`, `media`, and `template` messages reject unknown fields with a 400, so send only the fields documented for that type.
+`text`, `media`, `template`, and `reaction` messages reject unknown fields with a 400, so send only the fields documented for that type. A `reaction` takes only `clientWaNumber`, `messageType`, `reaction`, and `integrations`.
 
 ### Ask for a Phone Number
 
@@ -1077,6 +1077,43 @@ Send a pin on the map. `name` and `address` are optional labels shown under the 
   }
 }
 ```
+
+---
+
+### Reaction Message
+
+React to a message in a WhatsApp conversation with an emoji, change your reaction, or remove it. The contact sees the reaction on that message, the same way as a reaction sent from the Heltar inbox.
+
+```json
+{
+  "clientWaNumber": "919876543210",
+  "messageType": "reaction",
+  "reaction": {
+    "message_id": "wamid.HBgLOTE5ODc2NTQzMjEw...",
+    "emoji": "👍"
+  }
+}
+```
+
+| Field                 | Type   | Required | Description                                                                                           |
+| --------------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------- |
+| `clientWaNumber`      | string | Yes      | The contact whose conversation holds the message                                                      |
+| `messageType`         | string | Yes      | Must be `reaction`                                                                                    |
+| `reaction.message_id` | string | Yes      | `wamid` of the message to react to. It can be a message you received from the contact or one you sent |
+| `reaction.emoji`      | string | Yes      | The emoji to react with. Send an empty string (`""`) to remove your reaction                          |
+
+- A reaction is not a new message. On success, the entry in `success` carries the message you reacted to, with `reaction.sentEmoji` set to your emoji (`null` after you remove it) and `reaction.receivedEmoji` holding the contact's own reaction to that message, if any.
+- A message carries one reaction from you at a time. Sending another emoji replaces the previous one.
+- WhatsApp does not deliver a reaction to a message that is more than 30 days old, has been deleted, or is itself a reaction.
+- With asynchronous message mode on, a reaction is queued like any other message. Add `?priority=true` to send it right away and get the result in the response.
+
+A reaction that cannot be sent is returned in `fail`:
+
+| `errorCode` | `errorData`                                      | Cause                                                                               |
+| ----------- | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| 404         | `Message not found`                              | No message with this `wamid` exists in your conversation with this `clientWaNumber` |
+| 400         | `Reactions are supported on WhatsApp chats only` | The conversation is an RCS or web chat one                                          |
+| 400         | WhatsApp's error object                          | WhatsApp rejected the reaction (for example, an invalid emoji)                      |
 
 ---
 
