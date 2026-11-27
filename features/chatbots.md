@@ -211,7 +211,7 @@ Additional configuration options:
 
 #### Voice Bot Settings (if voice model selected)
 
-- **TTS Provider** - Cartesia/ElevenLabs/OpenAI Realtime
+- **TTS Provider** - ElevenLabs
 - **STT Provider** - Deepgram/AssemblyAI
 - **Voice Selection** - Choose TTS voice
 - **Language Selection** - STT language
